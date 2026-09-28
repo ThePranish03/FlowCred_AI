@@ -1,0 +1,39 @@
+feature_name,feature_type,description,source_column,transformation,uses_customer_history,uses_target,leakage_safe,notes
+invoice_amount,numeric,Invoice face amount (pre-payment),invoice_amount/invoice_date/due_date,raw amount,False,NO,YES,Neutral defaults when no history; current invoice never included
+log_invoice_amount,numeric,Natural-log invoice amount,invoice_amount/invoice_date/due_date,LogTransformer,False,NO,YES,Neutral defaults when no history; current invoice never included
+invoice_year,numeric,Calendar year of issue,invoice_amount/invoice_date/due_date,DatetimeFeatures,False,NO,YES,Neutral defaults when no history; current invoice never included
+invoice_month,numeric,Month of issue,invoice_amount/invoice_date/due_date,DatetimeFeatures,False,NO,YES,Neutral defaults when no history; current invoice never included
+invoice_quarter,numeric,Quarter of issue,invoice_amount/invoice_date/due_date,DatetimeFeatures,False,NO,YES,Neutral defaults when no history; current invoice never included
+invoice_day_of_week,numeric,Weekday of issue,invoice_amount/invoice_date/due_date,DatetimeFeatures,False,NO,YES,Neutral defaults when no history; current invoice never included
+invoice_day_of_month,numeric,Day of month of issue,invoice_amount/invoice_date/due_date,DatetimeFeatures,False,NO,YES,Neutral defaults when no history; current invoice never included
+invoice_week_of_year,numeric,ISO week of issue,invoice_amount/invoice_date/due_date,DatetimeFeatures,False,NO,YES,Neutral defaults when no history; current invoice never included
+invoice_is_weekend,numeric,Issue-date weekend flag,invoice_amount/invoice_date/due_date,DatetimeFeatures,False,NO,YES,Neutral defaults when no history; current invoice never included
+days_until_due,numeric,Due_date minus invoice_date (payment terms length),invoice_amount/invoice_date/due_date,due-invoice days,False,NO,YES,Neutral defaults when no history; current invoice never included
+previous_invoice_count,numeric,Count of strictly earlier invoices (customer),customer history (previous invoices),previous-only aggregation + median imputation,True,NO,YES,Neutral defaults when no history; current invoice never included
+previous_paid_invoice_count,numeric,Count of strictly earlier paid invoices (paid-only frame),customer history (previous invoices),previous-only aggregation + median imputation,True,NO,YES,Neutral defaults when no history; current invoice never included
+previous_late_count,numeric,Earlier invoices with delay_days>0,customer history (previous invoices),previous-only aggregation + median imputation,True,YES (previous targets only),YES,Neutral defaults when no history; current invoice never included
+previous_late_ratio,numeric,Late share of earlier invoices (0 if none),customer history (previous invoices),previous-only aggregation + median imputation,True,YES (previous targets only),YES,Neutral defaults when no history; current invoice never included
+previous_avg_delay,numeric,Mean delay_days of earlier invoices,customer history (previous invoices),previous-only aggregation + median imputation,True,YES (previous targets only),YES,Neutral defaults when no history; current invoice never included
+previous_median_delay,numeric,Median delay of earlier invoices,customer history (previous invoices),previous-only aggregation + median imputation,True,YES (previous targets only),YES,Neutral defaults when no history; current invoice never included
+previous_max_delay,numeric,Max delay of earlier invoices,customer history (previous invoices),previous-only aggregation + median imputation,True,YES (previous targets only),YES,Neutral defaults when no history; current invoice never included
+previous_min_delay,numeric,Min delay of earlier invoices,customer history (previous invoices),previous-only aggregation + median imputation,True,YES (previous targets only),YES,Neutral defaults when no history; current invoice never included
+previous_avg_invoice_amount,numeric,Mean amount of earlier invoices,customer history (previous invoices),previous-only aggregation + median imputation,True,NO,YES,Neutral defaults when no history; current invoice never included
+previous_total_invoice_amount,numeric,Total amount of earlier invoices,customer history (previous invoices),previous-only aggregation + median imputation,True,NO,YES,Neutral defaults when no history; current invoice never included
+previous_days_since_invoice,numeric,Days since latest earlier invoice,customer history (previous invoices),previous-only aggregation + median imputation,True,NO,YES,Neutral defaults when no history; current invoice never included
+has_payment_history,numeric,1 if any earlier invoice exists,customer history (previous invoices),previous-only aggregation + median imputation,True,NO,YES,Neutral defaults when no history; current invoice never included
+cust_payment_terms_CA10,onehot,One-hot from cust_payment_terms_CA10,cust_payment_terms/invoice_currency,RareLabelEncoder(tol=0.02)+OneHotEncoder (fit train only),False,NO,YES,Unknown categories ignored at transform
+cust_payment_terms_NAA8,onehot,One-hot from cust_payment_terms_NAA8,cust_payment_terms/invoice_currency,RareLabelEncoder(tol=0.02)+OneHotEncoder (fit train only),False,NO,YES,Unknown categories ignored at transform
+cust_payment_terms_NAAX,onehot,One-hot from cust_payment_terms_NAAX,cust_payment_terms/invoice_currency,RareLabelEncoder(tol=0.02)+OneHotEncoder (fit train only),False,NO,YES,Unknown categories ignored at transform
+cust_payment_terms_NAC6,onehot,One-hot from cust_payment_terms_NAC6,cust_payment_terms/invoice_currency,RareLabelEncoder(tol=0.02)+OneHotEncoder (fit train only),False,NO,YES,Unknown categories ignored at transform
+cust_payment_terms_NAD1,onehot,One-hot from cust_payment_terms_NAD1,cust_payment_terms/invoice_currency,RareLabelEncoder(tol=0.02)+OneHotEncoder (fit train only),False,NO,YES,Unknown categories ignored at transform
+cust_payment_terms_NAH4,onehot,One-hot from cust_payment_terms_NAH4,cust_payment_terms/invoice_currency,RareLabelEncoder(tol=0.02)+OneHotEncoder (fit train only),False,NO,YES,Unknown categories ignored at transform
+cust_payment_terms_NAM4,onehot,One-hot from cust_payment_terms_NAM4,cust_payment_terms/invoice_currency,RareLabelEncoder(tol=0.02)+OneHotEncoder (fit train only),False,NO,YES,Unknown categories ignored at transform
+cust_payment_terms_Rare,onehot,One-hot from cust_payment_terms_Rare,cust_payment_terms/invoice_currency,RareLabelEncoder(tol=0.02)+OneHotEncoder (fit train only),False,NO,YES,Unknown categories ignored at transform
+invoice_currency_CAD,onehot,One-hot from invoice_currency_CAD,cust_payment_terms/invoice_currency,RareLabelEncoder(tol=0.02)+OneHotEncoder (fit train only),False,NO,YES,Unknown categories ignored at transform
+invoice_currency_USD,onehot,One-hot from invoice_currency_USD,cust_payment_terms/invoice_currency,RareLabelEncoder(tol=0.02)+OneHotEncoder (fit train only),False,NO,YES,Unknown categories ignored at transform
+payment_date,excluded,Excluded from X,payment_date,none (target/grouping/identifier only),n/a,NO,n/a (excluded),Must never enter X
+delay_days,excluded,Excluded from X,delay_days,none (target/grouping/identifier only),n/a,YES,n/a (excluded),Target
+is_late,excluded,Excluded from X,is_late,none (target/grouping/identifier only),n/a,YES,n/a (excluded),Must never enter X
+invoice_status,excluded,Excluded from X,invoice_status,none (target/grouping/identifier only),n/a,NO,n/a (excluded),Must never enter X
+invoice_id,excluded,Excluded from X,invoice_id,none (target/grouping/identifier only),n/a,NO,n/a (excluded),Must never enter X
+customer_id,excluded,Excluded from X,customer_id,none (target/grouping/identifier only),n/a,NO,n/a (excluded),Grouping key only

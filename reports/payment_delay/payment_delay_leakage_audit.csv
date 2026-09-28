@@ -1,0 +1,39 @@
+Feature,Allowed?,Reason
+payment_date,NO,Target-derived/post-payment/identifier - must never be a predictor
+delay_days,NO,Target-derived/post-payment/identifier - must never be a predictor
+is_late,NO,Target-derived/post-payment/identifier - must never be a predictor
+invoice_status,NO,Target-derived/post-payment/identifier - must never be a predictor
+invoice_id,NO,Target-derived/post-payment/identifier - must never be a predictor
+customer_id,NO,"Grouping key for history only, never a predictor"
+invoice_amount,YES,Known at issue time; history uses strictly previous invoices only (uses_history=False)
+log_invoice_amount,YES,Known at issue time; history uses strictly previous invoices only (uses_history=False)
+invoice_year,YES,Known at issue time; history uses strictly previous invoices only (uses_history=False)
+invoice_month,YES,Known at issue time; history uses strictly previous invoices only (uses_history=False)
+invoice_quarter,YES,Known at issue time; history uses strictly previous invoices only (uses_history=False)
+invoice_day_of_week,YES,Known at issue time; history uses strictly previous invoices only (uses_history=False)
+invoice_day_of_month,YES,Known at issue time; history uses strictly previous invoices only (uses_history=False)
+invoice_week_of_year,YES,Known at issue time; history uses strictly previous invoices only (uses_history=False)
+invoice_is_weekend,YES,Known at issue time; history uses strictly previous invoices only (uses_history=False)
+days_until_due,YES,Known at issue time; history uses strictly previous invoices only (uses_history=False)
+previous_invoice_count,YES,Known at issue time; history uses strictly previous invoices only (uses_history=True)
+previous_paid_invoice_count,YES,Known at issue time; history uses strictly previous invoices only (uses_history=True)
+previous_late_count,YES,Known at issue time; history uses strictly previous invoices only (uses_history=True)
+previous_late_ratio,YES,Known at issue time; history uses strictly previous invoices only (uses_history=True)
+previous_avg_delay,YES,Known at issue time; history uses strictly previous invoices only (uses_history=True)
+previous_median_delay,YES,Known at issue time; history uses strictly previous invoices only (uses_history=True)
+previous_max_delay,YES,Known at issue time; history uses strictly previous invoices only (uses_history=True)
+previous_min_delay,YES,Known at issue time; history uses strictly previous invoices only (uses_history=True)
+previous_avg_invoice_amount,YES,Known at issue time; history uses strictly previous invoices only (uses_history=True)
+previous_total_invoice_amount,YES,Known at issue time; history uses strictly previous invoices only (uses_history=True)
+previous_days_since_invoice,YES,Known at issue time; history uses strictly previous invoices only (uses_history=True)
+has_payment_history,YES,Known at issue time; history uses strictly previous invoices only (uses_history=True)
+cust_payment_terms_CA10,YES,Train-fit one-hot of pre-payment categorical; unknown levels ignored
+cust_payment_terms_NAA8,YES,Train-fit one-hot of pre-payment categorical; unknown levels ignored
+cust_payment_terms_NAAX,YES,Train-fit one-hot of pre-payment categorical; unknown levels ignored
+cust_payment_terms_NAC6,YES,Train-fit one-hot of pre-payment categorical; unknown levels ignored
+cust_payment_terms_NAD1,YES,Train-fit one-hot of pre-payment categorical; unknown levels ignored
+cust_payment_terms_NAH4,YES,Train-fit one-hot of pre-payment categorical; unknown levels ignored
+cust_payment_terms_NAM4,YES,Train-fit one-hot of pre-payment categorical; unknown levels ignored
+cust_payment_terms_Rare,YES,Train-fit one-hot of pre-payment categorical; unknown levels ignored
+invoice_currency_CAD,YES,Train-fit one-hot of pre-payment categorical; unknown levels ignored
+invoice_currency_USD,YES,Train-fit one-hot of pre-payment categorical; unknown levels ignored

@@ -1,0 +1,70 @@
+{
+  "model_name": "late_payment_xgboost",
+  "algorithm": "XGBoost",
+  "feature_names": [
+    "invoice_amount",
+    "log_invoice_amount",
+    "invoice_year",
+    "invoice_month",
+    "invoice_quarter",
+    "invoice_day_of_week",
+    "invoice_day_of_month",
+    "invoice_week_of_year",
+    "invoice_is_weekend",
+    "days_until_due",
+    "previous_invoice_count",
+    "previous_late_count",
+    "previous_late_ratio",
+    "previous_avg_delay",
+    "previous_median_delay",
+    "previous_avg_invoice_amount",
+    "previous_total_invoice_amount",
+    "days_since_previous_invoice",
+    "has_payment_history"
+  ],
+  "training_rows": 27410,
+  "validation_rows": 5874,
+  "test_rows": 5874,
+  "training_date_range": [
+    "2018-12-30",
+    "2019-10-09"
+  ],
+  "validation_date_range": [
+    "2019-10-09",
+    "2019-12-10"
+  ],
+  "test_date_range": [
+    "2019-12-10",
+    "2020-02-27"
+  ],
+  "validation_metrics": {
+    "accuracy": 0.7892,
+    "precision": 0.7543,
+    "recall": 0.7145,
+    "f1": 0.7339,
+    "roc_auc": 0.8435,
+    "pr_auc": 0.8151
+  },
+  "test_metrics": {
+    "accuracy": 0.7809,
+    "precision": 0.7389,
+    "recall": 0.6882,
+    "f1": 0.7127,
+    "roc_auc": 0.8436,
+    "pr_auc": 0.807
+  },
+  "test_metrics_operational_threshold": {
+    "accuracy": 0.7773,
+    "precision": 0.7154,
+    "recall": 0.724,
+    "f1": 0.7197,
+    "roc_auc": 0.8436,
+    "pr_auc": 0.807
+  },
+  "classification_threshold": 0.45,
+  "risk_thresholds": {
+    "LOW_THRESHOLD": 0.3,
+    "HIGH_THRESHOLD": 0.7
+  },
+  "dataset_version": "late_payment_v1_chronological"
+}
