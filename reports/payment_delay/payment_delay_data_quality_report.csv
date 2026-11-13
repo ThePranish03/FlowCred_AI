@@ -1,0 +1,11 @@
+metric,value
+total_rows,48839
+paid_invoices,39158
+unpaid_open_invoices,9681
+missing_payment_date,9681
+missing_due_date,0
+missing_delay_days,0
+negative_delay_days,14469
+zero_delay_days,8271
+positive_delay_days,16418
+n_customers_paid,1344

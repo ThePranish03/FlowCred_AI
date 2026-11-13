@@ -1,0 +1,20 @@
+feature_name,data_type,source,calculation,description,available_at_prediction_time,leakage_safe,missing_percentage
+invoice_amount,float64,raw invoice,invoice_amount,Invoice amount known before payment,True,True,0.0
+log_invoice_amount,float64,Feature-engine LogTransformer,log(invoice_amount),Log-transformed invoice amount,True,True,0.0
+invoice_year,int32,Feature-engine DatetimeFeatures,invoice_date.year,Calendar year of invoice,True,True,0.0
+invoice_month,int32,Feature-engine DatetimeFeatures,invoice_date.month,Calendar month of invoice,True,True,0.0
+invoice_quarter,int32,Feature-engine DatetimeFeatures,invoice_date.quarter,Quarter of invoice,True,True,0.0
+invoice_day_of_week,int32,Feature-engine DatetimeFeatures,invoice_date.day_of_week,Weekday signal,True,True,0.0
+invoice_day_of_month,int32,Feature-engine DatetimeFeatures,invoice_date.day,Day of month,True,True,0.0
+invoice_week_of_year,int64,Feature-engine DatetimeFeatures,invoice_date.week_of_year,Week of year,True,True,0.0
+invoice_is_weekend,int64,Feature-engine DatetimeFeatures,invoice_date.is_weekend,Weekend indicator,True,True,0.0
+days_until_due,int64,derived rule,(due_date - invoice_date).dt.days,Lead time to invoice due date,True,True,0.0
+previous_invoice_count,int64,customer history,count(prior-date invoices),Number of earlier invoices for the customer,True,True,0.0
+previous_late_count,float64,customer history,sum(prior is_late),Earlier late invoices for the customer,True,True,3.7616834363348484
+previous_late_ratio,float64,customer history,mean(prior is_late),Historical late-payment ratio,True,True,3.7616834363348484
+previous_avg_delay,float64,customer history,mean(prior delay_days),Average delay on earlier invoices,True,True,3.7616834363348484
+previous_median_delay,float64,customer history,median(prior delay_days),Median delay on earlier invoices,True,True,3.7616834363348484
+previous_avg_invoice_amount,float64,customer history,mean(prior invoice_amount),Average historical invoice size,True,True,3.7616834363348484
+previous_total_invoice_amount,float64,customer history,sum(prior invoice_amount),Historical total invoice amount,True,True,3.7616834363348484
+days_since_previous_invoice,float64,customer history,current_date - latest prior invoice_date,Recency of the latest earlier invoice,True,True,3.7616834363348484
+has_payment_history,int64,customer history,1 if prior-date invoices exist else 0,Whether earlier invoices exist for the customer,True,True,0.0

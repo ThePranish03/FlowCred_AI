@@ -1,0 +1,61 @@
+{
+  "model_name": "payment_delay_histgradientboosting",
+  "model_type": "HistGradientBoosting",
+  "target": "delay_days",
+  "training_rows": 33283,
+  "validation_rows": 5873,
+  "test_rows": 5875,
+  "number_of_features": 32,
+  "training_date": "2026-09-28",
+  "hyperparameters": {
+    "random_state": 42
+  },
+  "validation_metrics": {
+    "MAE": 2.558,
+    "RMSE": 4.8008,
+    "R2": 0.4793,
+    "MedAE": 1.3324
+  },
+  "test_metrics": {
+    "MAE": 3.2768,
+    "RMSE": 7.7524,
+    "R2": 0.4694,
+    "MedAE": 1.613
+  },
+  "feature_list": [
+    "invoice_amount",
+    "log_invoice_amount",
+    "invoice_year",
+    "invoice_month",
+    "invoice_quarter",
+    "invoice_day_of_week",
+    "invoice_day_of_month",
+    "invoice_week_of_year",
+    "invoice_is_weekend",
+    "days_until_due",
+    "previous_invoice_count",
+    "previous_paid_invoice_count",
+    "previous_late_count",
+    "previous_late_ratio",
+    "previous_avg_delay",
+    "previous_median_delay",
+    "previous_max_delay",
+    "previous_min_delay",
+    "previous_avg_invoice_amount",
+    "previous_total_invoice_amount",
+    "previous_days_since_invoice",
+    "has_payment_history",
+    "cust_payment_terms_CA10",
+    "cust_payment_terms_NAA8",
+    "cust_payment_terms_NAAX",
+    "cust_payment_terms_NAC6",
+    "cust_payment_terms_NAD1",
+    "cust_payment_terms_NAH4",
+    "cust_payment_terms_NAM4",
+    "cust_payment_terms_Rare",
+    "invoice_currency_CAD",
+    "invoice_currency_USD"
+  ],
+  "random_seed": 42,
+  "selection": "Option B refit on train+val; hyperparameters frozen from validation; test evaluated once"
+}
