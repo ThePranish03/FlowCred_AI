@@ -135,7 +135,7 @@ export default function ReportsPage() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [riskBand, setRiskBand] = useState<"all" | "Low" | "Medium" | "High">("all");
-  const [status, setStatus] = useState<"all" | "paid" | "open">("all");
+  const [status, setStatus] = useState<"all" | "paid" | "open" | "overdue">("all");
   const [generating, setGenerating] = useState(false);
   const [report, setReport] = useState<GeneratedReport | null>(null);
   const [sessionReports, setSessionReports] = useState<GeneratedReport[]>([]);
@@ -489,6 +489,7 @@ export default function ReportsPage() {
                         <option value="all">All invoices</option>
                         <option value="paid">Paid only</option>
                         <option value="open">Open only</option>
+                        <option value="overdue">Overdue only</option>
                       </Select>
                     </label>
                   ) : null}

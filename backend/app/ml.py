@@ -91,7 +91,14 @@ def late_inference(artifacts: dict[str, Any], invoice: dict[str, Any], history: 
     probability = float(artifacts["model"].predict_proba(late)[0, 1])
     threshold = float(artifacts["metadata"].get("classification_threshold", .45))
     band = "Low" if probability < .3 else "Medium" if probability < .7 else "High"
-    return {"probability": probability, "riskBand": band, "threshold": threshold, "modelVersion": artifacts["version"], "predictedAt": datetime.now(timezone.utc).isoformat()}
+    return {
+        "probability": probability,
+        "predictedLate": probability >= threshold,
+        "riskBand": band,
+        "threshold": threshold,
+        "modelVersion": artifacts["version"],
+        "predictedAt": datetime.now(timezone.utc).isoformat(),
+    }
 
 
 def delay_inference(artifacts: dict[str, Any], invoice: dict[str, Any], history: dict[str, Any]) -> dict[str, Any]:

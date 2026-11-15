@@ -256,6 +256,7 @@ export default function InvoicesPage() {
             <option value="all">All statuses</option>
             <option value="paid">Paid</option>
             <option value="open">Open</option>
+            <option value="overdue">Overdue</option>
           </Select>
         </FilterField>
         <FilterField label="Risk band">

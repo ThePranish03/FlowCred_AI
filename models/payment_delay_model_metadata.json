@@ -6,7 +6,7 @@
   "validation_rows": 5873,
   "test_rows": 5875,
   "number_of_features": 32,
-  "training_date": "2026-09-28",
+  "training_date": "2026-10-06",
   "hyperparameters": {
     "random_state": 42
   },

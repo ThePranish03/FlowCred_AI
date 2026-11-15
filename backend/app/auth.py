@@ -13,7 +13,7 @@ from .database import get_db
 from .db_models import AuditEvent, RefreshToken, User
 from .security import hash_password, verify_password
 
-ROLES = {"admin", "business_owner", "accountant", "collections"}
+ROLES = {"business_owner", "accountant", "collection_user"}
 SECRET = os.getenv("JWT_SECRET_KEY", "local-development-only-change-this-secret")
 ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))

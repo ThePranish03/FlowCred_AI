@@ -1,4 +1,4 @@
-export type Role = "admin" | "business_owner" | "accountant" | "collections";
+export type Role = "business_owner" | "accountant" | "collection_user";
 
 export interface SessionUser {
   id: string;
@@ -9,7 +9,7 @@ export interface SessionUser {
 }
 
 export type RiskBand = "Low" | "Medium" | "High";
-export type InvoiceStatus = "paid" | "open";
+export type InvoiceStatus = "paid" | "open" | "overdue";
 export type DelayDirection = "early" | "on_time" | "late";
 
 export interface Invoice {
@@ -36,6 +36,8 @@ export interface InvoiceDetailResponse {
   clusterId: number;
   cluster: ClusterDetail;
   history: Invoice[];
+  predictionHistory?: InvoicePredictionRecord[];
+  scoringState?: { status: "scored" | "ineligible"; reason: string | null; updatedAt: string } | null;
   context: {
     previousAvgDelay: number | null;
     previousLateRatio: number | null;
@@ -44,6 +46,17 @@ export interface InvoiceDetailResponse {
     hasPaymentHistory: boolean;
     daysUntilDue: number;
   };
+}
+
+export interface InvoicePredictionRecord {
+  id: string;
+  type: "late-payment" | "payment-delay";
+  value: number | null;
+  probability: number | null;
+  riskBand: RiskBand | null;
+  modelVersion: string | null;
+  predictedAt: string;
+  details: { threshold?: number; predictedLate?: boolean } | null;
 }
 
 export interface InvoiceListParams {
@@ -112,9 +125,9 @@ export interface CustomerListParams {
 export interface CustomerComparison {
   feature: string;
   label: string;
-  customerValue: number;
-  clusterValue: number;
-  globalMedian: number;
+  customerValue: number | null;
+  clusterValue: number | null;
+  globalMedian: number | null;
 }
 
 export interface CustomerDetailResponse {
@@ -546,8 +559,19 @@ export interface HealthResponse {
   status: "demo" | "ok" | "degraded";
   mode: "demo" | "live";
   apiVersion: string;
-  models: { id: string; status: string; version: string | null }[];
+  environment?: string;
+  businessDate?: string;
+  database?: { status: string; error?: string };
+  authentication?: { jwt: string; sso: string };
+  models: { id: string; status: string; version: string | null; algorithm?: string | null; loadingStatus?: string; lastLoadedAt?: string | null; error?: string }[];
   timestamp: string;
+}
+
+export interface CapabilitiesResponse {
+  checkedAt: string;
+  endpoints: { method: string; path: string; implemented: boolean; authenticationRequired: boolean; roles: Role[] }[];
+  authentication: { jwt: string; sso: string };
+  reports: { scheduledDelivery: string; serverStorage: string };
 }
 
 export interface SearchResponse {
@@ -566,6 +590,7 @@ export interface UploadValidationResult {
   issues: { row: number; column: string; message: string }[];
   headers: string[];
   preview: Record<string, string>[];
+  validationDate: string;
   validatedAt: string;
 }
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -29,7 +29,7 @@ import { cn } from "@/lib/utils";
 const schema = z.object({
   email: z.string().trim().email("Enter a valid work email."),
   password: z.string().min(API_MODE === "live" ? 8 : 6, `Password must be at least ${API_MODE === "live" ? 8 : 6} characters.`),
-  role: z.enum(["admin", "business_owner", "accountant", "collections"]),
+  role: z.enum(["business_owner", "accountant", "collection_user"]).optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -38,7 +38,7 @@ const CAPABILITIES = [
   {
     icon: Gauge,
     title: "Late-payment classification",
-    description: "XGBoost probability, operational risk band and the recorded 0.45 decision threshold.",
+    description: "XGBoost probability, operational risk bands and the configured decision threshold.",
   },
   {
     icon: TrendingUp,
@@ -52,7 +52,7 @@ const CAPABILITIES = [
   },
 ];
 
-const ROLE_OPTIONS: Role[] = ["admin", "business_owner", "accountant", "collections"];
+const ROLE_OPTIONS: Role[] = ["business_owner", "accountant", "collection_user"];
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -65,9 +65,9 @@ export default function LoginPage() {
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      email: "admin@flowcred.ai",
+      email: API_MODE === "demo" ? "owner@flowcred.ai" : "",
       password: API_MODE === "demo" ? "flowcred-demo" : "",
-      role: "admin",
+      role: API_MODE === "demo" ? "business_owner" : undefined,
     },
   });
 
@@ -90,8 +90,9 @@ export default function LoginPage() {
       }
       return;
     }
-    login(values.role, values.email);
-    toast.success(`Signed in as ${ROLE_LABELS[values.role]}`, {
+    const role = values.role ?? "accountant";
+    login(role, values.email);
+    toast.success(`Signed in as ${ROLE_LABELS[role]}`, {
       description: "Demo authentication is stored locally in this browser.",
     });
     navigate(from, { replace: true });
@@ -181,7 +182,7 @@ export default function LoginPage() {
           </span>
           <span className="inline-flex items-center gap-1.5">
             <Users className="h-3.5 w-3.5" />
-            1,425 customers analysed
+            Six customer behaviour segments
           </span>
         </div>
       </div>
@@ -217,7 +218,7 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <div className="mt-6 grid grid-cols-2 gap-2">
+          {API_MODE === "demo" ? <div className="mt-6 grid grid-cols-2 gap-2">
             {ROLE_OPTIONS.map((role) => (
               <button
                 key={role}
@@ -238,7 +239,7 @@ export default function LoginPage() {
                 </span>
               </button>
             ))}
-          </div>
+          </div> : null}
 
           <form onSubmit={form.handleSubmit(onSubmit)} className="mt-6 space-y-4">
             <div className="space-y-1.5">
@@ -271,7 +272,7 @@ export default function LoginPage() {
                 <p className="text-xs text-risk-high">{form.formState.errors.password.message}</p>
               ) : null}
             </div>
-            <div className="space-y-1.5">
+            {API_MODE === "demo" ? <div className="space-y-1.5">
               <Label htmlFor="role">Access role</Label>
               <Select id="role" {...form.register("role")}>
                 {ROLE_OPTIONS.map((role) => (
@@ -280,7 +281,7 @@ export default function LoginPage() {
                   </option>
                 ))}
               </Select>
-            </div>
+            </div> : null}
 
             <Button type="submit" className="mt-2 w-full" size="lg">
               Continue to workspace
@@ -294,6 +295,9 @@ export default function LoginPage() {
               ? "Any valid email and a six-character password signs you in locally. Choose a role to preview access."
               : "Use your registered email and password. The backend applies your account role to every protected request."}
           </div>
+          <p className="mt-5 text-center text-sm text-muted-foreground">
+            New to FlowCred AI? <Link to="/register" className="font-semibold text-primary hover:underline">Create an account</Link>
+          </p>
         </div>
       </div>
     </div>

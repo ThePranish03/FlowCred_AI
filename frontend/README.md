@@ -142,8 +142,8 @@ All paths are relative to `VITE_API_BASE_URL`.
 | GET | `/datasets` | Pipeline artifact inventory | demo ready |
 | GET | `/search?q=` | Global invoice and customer search | demo ready |
 | GET | `/health` | Mode, version and model status | demo ready |
-| POST | `/invoices/predict/late-payment` | Live classifier inference | pending |
-| POST | `/invoices/predict/payment-delay` | Live regressor inference | pending |
+| POST | `/invoices/predict/late-payment` | Live classifier inference | implemented; available from invoice details in live mode |
+| POST | `/invoices/predict/payment-delay` | Live regressor inference | implemented; available from invoice details in live mode |
 | POST | `/datasets/upload` | Server-side validation and ingestion | pending |
 
 Prediction request and response shapes are defined in `src/api/index.ts`:
@@ -171,25 +171,22 @@ Response expectations:
 Operational requirements:
 
 - serve the SPA and API on the same origin or configure explicit CORS
-- enforce authentication and role checks server-side; the current login is local UI state only
+- enforce authentication and role checks server-side; demo mode uses local UI state
 - load artifacts on the server at startup; never expose joblib files or secrets to the browser
 - return SHAP values only when actually computed
 - expose model versions and health so Data Management and Settings can report availability
+
+In live mode, invoice details can score missing outputs through the authenticated inference endpoints. Saved-invoice requests use the persisted invoice fields and point-in-time customer history; inference results are stored separately from offline evaluation predictions. Demo mode continues to use only recorded fixtures.
 
 ## Reports and exports
 
 Reports are assembled client-side from API responses. CSV and PDF downloads stay disabled until a report is generated, and any filter change clears the current report. PDF exports are capped at the first 250 rows; use CSV for the full dataset. Report history is session-only.
 
-## Known missing integrations
+## Integration status
 
-- live inference endpoints
-- dataset upload and persistence
-- real authentication, SSO and server-side authorization
-- scheduled or emailed report delivery
-- multi-workspace tenancy
-- cash-flow forecasting model and endpoints
+The live client connects to the FastAPI service at `VITE_API_BASE_URL` (Docker uses the same-origin `/api/v1` Nginx proxy). The Settings → API Integration view reads `/health` and `/capabilities`, refreshes health every 30 seconds, and distinguishes route registration from the current account's authorization. POST operations are represented by backend route metadata and are never called as probes.
 
-These are documented in the UI and are not simulated.
+JWT login, access-token verification, refresh rotation, model inference and owner-only CSV upload/persistence are implemented server-side. External SSO, scheduled report delivery, server-side report storage, and cash-flow forecasting are not implemented. The collection role has no assignment/follow-up model yet and is denied shared analytics access.
 
 ## Project layout
 

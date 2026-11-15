@@ -60,6 +60,8 @@ The stack includes the API, frontend, and PostgreSQL. PostgreSQL and uploaded fi
 
 Interactive OpenAPI documentation: `/docs`. The backend uses the existing `/api/v1` routes for registration/login, refresh/logout, invoices/customers, CSV upload, risk/delay inference, clustering, and health. Public registrations receive the accountant role; only the configured bootstrap email can claim the initial admin role. Other role assignment is not user-controlled. Passwords use salted PBKDF2-HMAC-SHA256 (310,000 rounds). Access tokens expire after 30 minutes by default. Refresh tokens are stored server-side, rotated on refresh, and prior tokens are revoked. SQLAlchemy bound parameters protect database queries from SQL injection. Role dependencies protect financial endpoints; the API currently has a single shared workspace and no organization-level tenant boundary.
 
+On the live invoice detail page, **Score missing outputs** calls only the missing authenticated inference endpoint(s). Results are persisted as live prediction records and remain separate from the recorded chronological evaluation outputs. For stored invoices, inference uses saved invoice fields and prior-only history aggregates; only payments recorded before the current invoice date are eligible. Startup also backfills missing payment terms from the bundled invoice snapshot, since payment terms are required model inputs.
+
 Uploads accept CSV only, cap files at 25 MiB, enforce required columns, date/currency/status/positive-amount checks, reject duplicate IDs (including existing invoice IDs), and persist valid records in the same transaction as upload metadata. Invoice list/detail endpoints read persisted invoices and latest prediction results. Prediction records retain model versions. Failed persistence rolls back and removes the corresponding stored file.
 
 ## Models and compatibility
@@ -76,7 +78,16 @@ The source for `feature_engineering_utils` was recovered from the project's reta
 - Audit events currently cover key mutations and predictions, not every read. Consider retention, export, and tamper-resistant audit storage for regulated operation.
 - Role authorization applies across the shared workspace; per-company/customer row-level tenancy is not implemented.
 - Cash-inflow forecasting remains unavailable because no verified model artifact exists. Static dashboard summary/source snapshot endpoints may not reflect newly uploaded data; invoice/customer lists and prediction histories use persisted data.
-- PostgreSQL, Compose container startup, and full browser-to-database E2E have not yet been confirmed in this machine. See the final execution report before treating deployment as accepted.
+- PostgreSQL and full browser-to-database E2E have not yet been confirmed in this machine. The backend test suite exercises live SQLite persistence and saved-model inference.
+
+## Operational API and roles
+
+- `GET /api/v1/health` checks database connectivity and reports whether all saved ML pipelines passed startup inference validation. `GET /api/v1/models/status` exposes per-model readiness, metadata version and load time without filesystem paths. `GET /api/v1/capabilities` reports registered paths and role requirements; it does not execute POST requests.
+- Dataset upload is a JWT-protected `POST /api/v1/datasets/upload` limited to 25 MB and `business_owner`. Invoice statuses are normalized to `paid`, `open`, or `overdue`. Paid rows require a valid payment date and derive delay fields from it; open rows remain open even when past due; overdue rows require no payment date and a due date earlier than the current business date. `BUSINESS_TIMEZONE` selects the date boundary (UTC by default). Validation failures reject the whole file before persistence; database failures roll back and remove the stored upload.
+- A successful upload starts paginated background scoring of unpaid `open` and `overdue` invoices using the saved XGBoost classifier and HistGradientBoosting regressor. `POST /api/v1/datasets/scoring-jobs` starts a scan and accepts `{"rescore": true}` for an intentional refresh; `GET /api/v1/datasets/scoring-jobs/{job_id}` reports progress, predictions, skipped reasons, and failures. Fingerprints include eligible invoice inputs, prior known payment history, and model versions so current outputs are reused and changed data or models are rescored. Paid invoices are never forecast. Clustering remains separate.
+- Payment risk and delay summaries are aggregated from saved prediction records. Static evaluation metrics and other snapshot-based dashboard views remain snapshots.
+- Business roles are `business_owner`, `accountant`, and `collection_user`. Migration `0003_business_roles` maps existing `admin` users to `business_owner` and `collections` users to `collection_user`, preserving accounts and credentials. Set `BOOTSTRAP_OWNER_EMAIL` to the operator-controlled email allowed to receive `business_owner` on an empty database; the legacy `BOOTSTRAP_ADMIN_EMAIL` is accepted as an alias. Every other public registration is an `accountant` regardless of the submitted role.
+- `collection_user` is intentionally denied shared-workspace analytics routes until invoice/customer assignment and follow-up models exist; there is no claim of assigned-worklist functionality.
 
 ## Verification
 

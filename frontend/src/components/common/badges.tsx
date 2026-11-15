@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { RISK_CONFIG, STATUS_CONFIG } from "@/lib/constants";
-import type { RiskBand } from "@/types";
+import type { InvoiceStatus, RiskBand } from "@/types";
 import { cn } from "@/lib/utils";
 
 export function RiskBadge({
@@ -37,7 +37,7 @@ export function RiskBadge({
   );
 }
 
-export function StatusBadge({ status, className }: { status: "paid" | "open"; className?: string }) {
+export function StatusBadge({ status, className }: { status: InvoiceStatus; className?: string }) {
   const config = STATUS_CONFIG[status];
   return (
     <span

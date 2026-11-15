@@ -30,12 +30,15 @@ export const VALIDATION_RULES = [
   "invoice_amount must be a positive number.",
   "invoice_date and due_date must be valid ISO dates (YYYY-MM-DD).",
   "due_date must not be earlier than invoice_date.",
-  "payment_date, when supplied, must be a valid ISO date and not earlier than invoice_date.",
-  "delay_days and is_late are accepted but recomputed by the backend pipeline.",
+  "invoice_status must be paid, open, or overdue (trimmed and lowercased).",
+  "Paid invoices require a valid payment_date on/after invoice_date and no later than the business validation date.",
+  "Open invoices must have no payment_date and remain open even when due_date has passed.",
+  "Overdue invoices must have no payment_date and due_date earlier than the current business validation date.",
+  "delay_days and is_late are derived from payment_date for paid invoices; they must be empty for unpaid invoices.",
   "invoice_currency must be USD or CAD for the supplied dataset.",
 ];
 
-const ISO_DATE = /^\d{4}-\d{2}-\d{2}(?:[T ].*)?$/;
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const CURRENCIES = new Set(["USD", "CAD"]);
 const MAX_ISSUES = 250;
 
@@ -55,11 +58,13 @@ function cell(values: Record<string, string>, column: string) {
 
 function isIsoDate(value: string) {
   if (!ISO_DATE.test(value)) return false;
-  return !Number.isNaN(new Date(value.slice(0, 10)).getTime());
+  const [year, month, day] = value.split("-").map(Number);
+  const parsed = new Date(year, month - 1, day);
+  return parsed.getFullYear() === year && parsed.getMonth() === month - 1 && parsed.getDate() === day;
 }
 
 function parseAmount(value: string) {
-  const numeric = Number(value.replace(/,/g, ""));
+  const numeric = Number(value);
   return Number.isFinite(numeric) ? numeric : null;
 }
 
@@ -72,6 +77,7 @@ export function validateInvoiceCsv(
   sizeKb: number,
   rawHeaders: string[],
   rawRows: Record<string, string>[],
+  businessDate = currentDateStamp(),
 ): UploadValidationResult {
   const headerMap = new Map<string, string>();
   rawHeaders.forEach((header) => headerMap.set(normalizeHeader(header), header));
@@ -155,8 +161,33 @@ export function validateInvoiceCsv(
     }
 
     const status = cell(values, "invoice_status").toLowerCase();
-    if (status && !["paid", "open"].includes(status)) {
-      addIssue(rowNumber, "invoice_status", `"${status}" is not a recognised invoice status.`);
+    if (status && !["paid", "open", "overdue"].includes(status)) {
+      addIssue(rowNumber, "invoice_status", `"${status}" is not a recognised invoice status (use paid, open, or overdue).`);
+    }
+    const paymentIsValid = Boolean(paymentDate) && isIsoDate(paymentDate) && isIsoDate(invoiceDate) && compareDates(paymentDate, invoiceDate) >= 0 && paymentDate <= businessDate;
+    if (status === "paid" && !paymentIsValid) {
+      addIssue(rowNumber, "payment_date", `Paid invoices require a valid payment date between invoice_date and ${businessDate}.`);
+    }
+    if ((status === "open" || status === "overdue") && paymentDate) {
+      addIssue(rowNumber, "payment_date", `${status} invoices must not have a payment date.`);
+    }
+    if (status === "overdue" && isIsoDate(dueDate) && dueDate >= businessDate) {
+      addIssue(rowNumber, "due_date", `Overdue invoices must be due before ${businessDate}.`);
+    }
+
+    const delayDays = cell(values, "delay_days");
+    if (delayDays && !Number.isFinite(Number(delayDays))) {
+      addIssue(rowNumber, "delay_days", `"${delayDays}" is not a number.`);
+    }
+    const lateFlag = cell(values, "is_late").toLowerCase();
+    if (lateFlag && !["0", "1", "0.0", "1.0", "true", "false"].includes(lateFlag)) {
+      addIssue(rowNumber, "is_late", `"${lateFlag}" must be boolean or 0/1.`);
+    }
+    if ((status === "open" || status === "overdue") && delayDays) {
+      addIssue(rowNumber, "delay_days", "Unpaid invoices must not supply derived delay_days.");
+    }
+    if ((status === "open" || status === "overdue") && lateFlag) {
+      addIssue(rowNumber, "is_late", "Unpaid invoices must not supply derived is_late.");
     }
   }
 
@@ -189,8 +220,14 @@ export function validateInvoiceCsv(
     issues,
     headers,
     preview,
+    validationDate: businessDate,
     validatedAt: new Date().toISOString(),
   };
+}
+
+function currentDateStamp() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 }
 
 export function unknownColumns(headers: string[]) {

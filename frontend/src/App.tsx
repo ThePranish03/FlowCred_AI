@@ -1,11 +1,13 @@
 import { lazy, Suspense } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import { Toaster } from "sonner";
 import { AppLayout } from "@/components/layout/app-layout";
 import { ProtectedRoute } from "@/components/layout/protected-route";
 import { PageSkeleton } from "@/components/common/loading";
 
 const LoginPage = lazy(() => import("@/pages/login"));
+const LandingPage = lazy(() => import("@/pages/landing"));
+const RegisterPage = lazy(() => import("@/pages/register"));
 const DashboardPage = lazy(() => import("@/pages/dashboard"));
 const InvoicesPage = lazy(() => import("@/pages/invoices"));
 const InvoiceDetailPage = lazy(() => import("@/pages/invoice-detail"));
@@ -27,10 +29,11 @@ export default function App() {
     <>
       <Suspense fallback={<PageSkeleton />}>
         <Routes>
+          <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
           <Route element={<ProtectedRoute />}>
             <Route element={<AppLayout />}>
-              <Route index element={<Navigate to="/dashboard" replace />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/invoices" element={<InvoicesPage />} />
               <Route path="/invoices/:invoiceId" element={<InvoiceDetailPage />} />

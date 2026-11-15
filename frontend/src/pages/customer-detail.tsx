@@ -35,7 +35,8 @@ import {
 } from "@/lib/format";
 import type { Invoice } from "@/types";
 
-function formatComparisonValue(feature: string, value: number) {
+function formatComparisonValue(feature: string, value: number | null) {
+  if (value == null) return "—";
   if (feature === "latePaymentRatio") return formatPercent(value, true);
   if (feature === "avgPaymentDelay") return formatDelayShort(value);
   if (feature === "avgInvoiceAmount") return formatNumber(value, true);
@@ -283,8 +284,14 @@ export default function CustomerDetailPage() {
                 </thead>
                 <tbody>
                   {comparison.map((row) => {
-                    const higher = row.customerValue > row.clusterValue;
-                    const inLine = Math.abs(row.customerValue - row.clusterValue) <= Math.abs(row.clusterValue) * 0.01;
+                    const higher =
+                      row.clusterValue !== null &&
+                      row.customerValue !== null &&
+                      row.customerValue > row.clusterValue;
+                    const inLine =
+                      row.clusterValue !== null &&
+                      row.customerValue !== null &&
+                      Math.abs(row.customerValue - row.clusterValue) <= Math.abs(row.clusterValue) * 0.01;
                     return (
                       <tr key={row.feature} className="border-b border-border/60 last:border-0">
                         <td className="py-2.5 pr-3 text-foreground">{row.label}</td>
@@ -298,9 +305,13 @@ export default function CustomerDetailPage() {
                           {formatComparisonValue(row.feature, row.globalMedian)}
                         </td>
                         <td className="py-2.5 text-right">
-                          <Badge variant={inLine ? "muted" : higher ? "accent" : "outline"}>
-                            {inLine ? "In line" : higher ? "Above" : "Below"}
-                          </Badge>
+                          {row.clusterValue !== null && row.customerValue !== null ? (
+                            <Badge variant={inLine ? "muted" : higher ? "accent" : "outline"}>
+                              {inLine ? "In line" : higher ? "Above" : "Below"}
+                            </Badge>
+                          ) : (
+                            <Badge variant="muted">Not available</Badge>
+                          )}
                         </td>
                       </tr>
                     );

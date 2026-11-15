@@ -1,4 +1,5 @@
-import { useMemo, useRef, useState, type DragEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type DragEvent } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import Papa from "papaparse";
 import {
@@ -27,6 +28,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useDataQuality, useDatasets, useHealth } from "@/api/queries";
+import { api } from "@/api";
+import type { ApiErrorShape } from "@/api/client";
+import { queryKeys } from "@/api/queries";
 import { API_MODE } from "@/lib/constants";
 import { formatDate, formatDateTime, formatNumber } from "@/lib/format";
 import {
@@ -51,19 +55,63 @@ interface UploadHistoryEntry {
   validatedAt: string;
 }
 
-const MAX_FILE_MB = 15;
+interface UploadFailure {
+  status?: number;
+  message: string;
+  totalRows?: number;
+  rejectedRows?: number;
+  existingInvoiceRows?: number;
+  issues: { row: number; column: string; message: string }[];
+}
+
+interface UploadOutcome {
+  fileName: string;
+  importedInvoices: number;
+  importedCustomers: number;
+  customersCreated: number;
+  customersReused: number;
+  scoringStatus: "queued" | "queue_failed";
+  scoringError: string | null;
+}
+
+const MAX_FILE_MB = 25;
 
 export default function DataManagementPage() {
   const quality = useDataQuality();
   const datasets = useDatasets();
   const health = useHealth();
+  const queryClient = useQueryClient();
 
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const [parsing, setParsing] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [validation, setValidation] = useState<UploadValidationResult | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [submissionFailure, setSubmissionFailure] = useState<UploadFailure | null>(null);
+  const [uploadOutcome, setUploadOutcome] = useState<UploadOutcome | null>(null);
   const [history, setHistory] = useState<UploadHistoryEntry[]>([]);
+  const [scoringJobId, setScoringJobId] = useState<string | null>(null);
+  const [startingRescore, setStartingRescore] = useState(false);
+  const scoringJob = useQuery({
+    queryKey: ["scoring-job", scoringJobId],
+    queryFn: () => api.scoringJob(scoringJobId!),
+    enabled: Boolean(scoringJobId) && API_MODE === "live",
+    refetchInterval: (query) => ["queued", "running"].includes(query.state.data?.status ?? "") ? 1000 : false,
+  });
+  useEffect(() => {
+    if (!scoringJob.data || ["queued", "running"].includes(scoringJob.data.status)) return;
+    void Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["invoices"] }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.dashboard }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.risk }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.delay }),
+      queryClient.invalidateQueries({ queryKey: ["invoice"] }),
+      queryClient.invalidateQueries({ queryKey: ["customer"] }),
+    ]);
+  }, [scoringJob.data?.status, queryClient]);
 
   const extraColumns = useMemo(
     () => (validation ? unknownColumns(validation.headers) : []),
@@ -72,7 +120,11 @@ export default function DataManagementPage() {
 
   async function processFile(file: File) {
     setFileError(null);
+    setSubmissionFailure(null);
+    setUploadOutcome(null);
+    setScoringJobId(null);
     setValidation(null);
+    setSelectedFile(file);
 
     if (!file.name.toLowerCase().endsWith(".csv")) {
       setFileError("Only .csv files are supported. Export the invoice table as CSV and try again.");
@@ -100,7 +152,7 @@ export default function DataManagementPage() {
               reject(new Error("No header row was found. The first row must contain column names."));
               return;
             }
-            resolve(validateInvoiceCsv(file.name, file.size / 1024, headers, parsed.data));
+            resolve(validateInvoiceCsv(file.name, file.size / 1024, headers, parsed.data, health.data?.businessDate));
           },
           error: (error: Error) => reject(error),
         });
@@ -141,6 +193,85 @@ export default function DataManagementPage() {
     if (file) void processFile(file);
   }
 
+  async function uploadFile() {
+    const file = selectedFile;
+    if (!file || !validation || validation.invalidRows > 0) return;
+    if (API_MODE !== "live") {
+      setFileError("Dataset upload is unavailable in demo mode. Switch to the live API and sign in as a business owner.");
+      return;
+    }
+    setUploading(true);
+    setUploadProgress(0);
+    setFileError(null);
+    setSubmissionFailure(null);
+    try {
+      const result = await api.uploadDataset(file, setUploadProgress);
+      setUploadOutcome({
+        fileName: result.fileName,
+        importedInvoices: result.importedInvoices,
+        importedCustomers: result.importedCustomers,
+        customersCreated: result.customersCreated,
+        customersReused: result.customersReused,
+        scoringStatus: result.scoringStatus,
+        scoringError: result.scoringError,
+      });
+      setScoringJobId(result.scoringJob?.id ?? null);
+      setValidation((current) => current ? { ...current, totalRows: result.totalRows, validRows: result.validRows, invalidRows: result.invalidRows, duplicateRows: result.duplicateRows, issues: result.issues, validationDate: result.validationDate, validatedAt: new Date().toISOString() } : current);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.invoices({}) }),
+        queryClient.invalidateQueries({ queryKey: ["invoices"] }),
+        queryClient.invalidateQueries({ queryKey: ["customers"] }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.dashboard }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.dataQuality }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.datasets }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.risk }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.delay }),
+      ]);
+      toast.success(`Imported ${formatNumber(result.importedInvoices)} invoice rows`, {
+        description: result.scoringStatus === "queued"
+          ? `Automatic ML scoring queued for ${formatNumber(result.scoringJob?.total ?? 0)} unpaid invoices.`
+          : "Invoices are committed. Automatic scoring could not be queued; use Re-score in Data Management.",
+      });
+      setSelectedFile(null);
+      if (inputRef.current) inputRef.current.value = "";
+    } catch (error) {
+      const apiError = error as Partial<ApiErrorShape>;
+      const detail = typeof apiError.detail === "object" && apiError.detail !== null
+        ? apiError.detail as Record<string, unknown>
+        : undefined;
+      const issues = Array.isArray(detail?.issues)
+        ? detail.issues.filter((issue): issue is { row: number; column: string; message: string } =>
+            typeof issue === "object" && issue !== null && "row" in issue && "column" in issue && "message" in issue,
+          )
+        : [];
+      const message = typeof apiError.message === "string" ? apiError.message : "The backend rejected the upload.";
+      setSubmissionFailure({
+        status: apiError.status,
+        message,
+        totalRows: typeof detail?.totalRows === "number" ? detail.totalRows : undefined,
+        rejectedRows: typeof detail?.rejectedRows === "number" ? detail.rejectedRows : typeof detail?.invalidRows === "number" ? detail.invalidRows : undefined,
+        existingInvoiceRows: typeof detail?.existingInvoiceRows === "number" ? detail.existingInvoiceRows : undefined,
+        issues,
+      });
+      toast.error("Backend rejected the CSV", { description: message });
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function startRescore() {
+    setStartingRescore(true);
+    try {
+      const job = await api.startBulkScoring(false);
+      setScoringJobId(job.id);
+      toast.success("Checking eligible invoices for current model versions");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Could not start bulk scoring.");
+    } finally {
+      setStartingRescore(false);
+    }
+  }
+
   const isLoading = quality.isLoading || datasets.isLoading || health.isLoading;
   const isError = quality.isError && datasets.isError && health.isError;
 
@@ -149,6 +280,7 @@ export default function DataManagementPage() {
   const qualityData = quality.data;
   const datasetRows = datasets.data?.datasets ?? [];
   const healthData = health.data;
+  const latestScoringResult = scoringJob.data?.results.successful?.slice(-1)[0];
 
   const qualityColumns: DataTableColumn<DatasetRow>[] = [
     {
@@ -195,7 +327,7 @@ export default function DataManagementPage() {
       <PageHeader
         eyebrow="Models & data"
         title="Data management"
-        description="Inspect the cleaned invoice dataset, validate a new CSV against the pipeline contract, and review the artifacts produced by training. Validation here runs entirely in the browser."
+        description="Inspect dataset quality, validate an invoice CSV, and import it to the backend when live access is enabled."
         actions={
           <Button variant="outline" asChild>
             <Link to="/settings?tab=api">
@@ -206,11 +338,7 @@ export default function DataManagementPage() {
         }
       />
 
-      <InfoNote variant="warning">
-        <strong>Demo workspace.</strong> Files are validated locally and never uploaded, stored or used for inference.
-        Connecting a real dataset, retraining and live scoring all require the FastAPI backend. No record is modified by this
-        screen.
-      </InfoNote>
+      {API_MODE === "demo" ? <InfoNote variant="warning"><strong>Demo workspace.</strong> CSV files are validated locally. Switch to live mode and sign in as a business owner to upload to the FastAPI service.</InfoNote> : null}
 
       {isError ? (
         <ErrorState
@@ -261,7 +389,7 @@ export default function DataManagementPage() {
           <CardHeader className="pb-3">
             <SectionHeading
               title="CSV validation"
-              description="Check a new invoice export against the required schema before it reaches the backend."
+              description="Validate the invoice schema locally, then submit it to authenticated backend validation and persistence."
             />
           </CardHeader>
           <CardContent className="space-y-4">
@@ -317,6 +445,31 @@ export default function DataManagementPage() {
               </div>
             ) : null}
 
+            {submissionFailure ? (
+              <div role="alert" className="space-y-2 rounded-lg border border-risk-high/20 bg-risk-high-soft/60 px-3.5 py-3 text-xs text-[#991B1B]">
+                <p className="font-semibold">
+                  Upload rejected{submissionFailure.status ? ` · HTTP ${submissionFailure.status}` : ""} · 0 invoices and 0 customers imported
+                </p>
+                <p>{submissionFailure.message}</p>
+                {submissionFailure.rejectedRows != null ? <p>{formatNumber(submissionFailure.rejectedRows)} of {formatNumber(submissionFailure.totalRows ?? validation?.totalRows ?? 0)} rows rejected.</p> : null}
+                {submissionFailure.existingInvoiceRows ? <p>{formatNumber(submissionFailure.existingInvoiceRows)} invoice IDs already exist. Existing records were preserved.</p> : null}
+                {submissionFailure.issues.length ? (
+                  <ul className="max-h-36 list-inside list-disc overflow-y-auto border-t border-risk-high/15 pt-2">
+                    {submissionFailure.issues.slice(0, 8).map((issue, index) => <li key={`${issue.row}-${issue.column}-${index}`}>Row {issue.row} · {issue.column}: {issue.message}</li>)}
+                    {submissionFailure.issues.length > 8 ? <li>And {formatNumber(submissionFailure.issues.length - 8)} more reported issues.</li> : null}
+                  </ul>
+                ) : null}
+              </div>
+            ) : null}
+
+            {uploadOutcome ? (
+              <div role="status" className="space-y-1 rounded-lg border border-risk-low/20 bg-risk-low/5 px-3.5 py-3 text-xs text-foreground">
+                <p className="font-semibold">Upload committed · {uploadOutcome.fileName}</p>
+                <p>{formatNumber(uploadOutcome.importedInvoices)} invoices imported · {formatNumber(uploadOutcome.importedCustomers)} customer records used ({formatNumber(uploadOutcome.customersCreated)} created, {formatNumber(uploadOutcome.customersReused)} reused).</p>
+                <p className="text-muted-foreground">Scoring status: {uploadOutcome.scoringStatus === "queued" ? "queued separately" : "queue failed; imported records are safe"}{uploadOutcome.scoringError ? ` · ${uploadOutcome.scoringError}` : ""}</p>
+              </div>
+            ) : null}
+
             {validation ? (
               <div className="space-y-4">
                 <div className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-border bg-muted/25 px-4 py-3">
@@ -328,7 +481,7 @@ export default function DataManagementPage() {
                         {validation.sizeKb >= 1024
                           ? `${(validation.sizeKb / 1024).toFixed(2)} MB`
                           : `${validation.sizeKb.toFixed(1)} KB`}{" "}
-                        · validated {formatDateTime(validation.validatedAt)}
+                        · validated {formatDateTime(validation.validatedAt)} · business date {validation.validationDate}
                       </p>
                     </div>
                   </div>
@@ -470,11 +623,11 @@ export default function DataManagementPage() {
 
                 <div className="flex flex-wrap items-center gap-2">
                   <Button
-                    disabled
-                    title="The upload endpoint is not connected in demo mode. See the integration contract in Settings."
+                    disabled={uploading || parsing || validation.invalidRows > 0 || API_MODE !== "live"}
+                    onClick={() => void uploadFile()}
                   >
                     <UploadCloud className="h-4 w-4" />
-                    Send to backend
+                    {uploading ? `Uploading ${uploadProgress}%…` : "Send to backend"}
                   </Button>
                   <Button
                     variant="outline"
@@ -486,8 +639,9 @@ export default function DataManagementPage() {
                     Validate another file
                   </Button>
                   <p className="text-[11px] text-muted-foreground">
-                    Backend upload is required for inference, retraining and persistence.
+                    {API_MODE === "live" ? "Requires a business_owner account. Invalid files are rejected before import." : "Live mode is required to upload this CSV."}
                   </p>
+                  {uploading ? <Progress value={uploadProgress} className="min-w-32 flex-1" /> : null}
                 </div>
               </div>
             ) : null}
@@ -525,6 +679,45 @@ export default function DataManagementPage() {
             </div>
           </CardContent>
         </Card>
+
+        {API_MODE === "live" ? (
+          <Card>
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <CardTitle className="text-base">Automatic invoice scoring</CardTitle>
+                  <p className="mt-1 text-xs text-muted-foreground">Saved XGBoost and HistGradientBoosting outputs for unpaid invoices.</p>
+                </div>
+                <Button size="sm" variant="outline" disabled={startingRescore || scoringJob.data?.status === "running" || scoringJob.data?.status === "queued"} onClick={() => void startRescore()}>
+                  {startingRescore ? "Starting…" : "Re-score changed invoices"}
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {scoringJob.data ? (
+                <>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-medium capitalize text-foreground">{scoringJob.data.status.replaceAll("_", " ")}</span>
+                    <span className="tabular text-muted-foreground">{formatNumber(scoringJob.data.processed)} / {formatNumber(scoringJob.data.total)}</span>
+                  </div>
+                  <Progress value={scoringJob.data.progressPercent} />
+                  <div className="grid grid-cols-3 gap-2 text-center text-xs">
+                    <div className="rounded-md bg-risk-low/10 p-2"><strong className="block text-risk-low">{formatNumber(scoringJob.data.succeeded)}</strong>predicted</div>
+                    <div className="rounded-md bg-muted p-2"><strong className="block text-foreground">{formatNumber(scoringJob.data.skipped)}</strong>skipped</div>
+                    <div className="rounded-md bg-risk-high/10 p-2"><strong className="block text-risk-high">{formatNumber(scoringJob.data.failed)}</strong>failed</div>
+                  </div>
+                  {scoringJob.data.results.skippedInvoices?.length ? <div className="space-y-1 text-xs text-muted-foreground"><p className="font-medium text-foreground">Skipped invoices</p>{scoringJob.data.results.skippedInvoices.slice(0, 4).map((item) => <p key={item.invoiceId}>{item.invoiceId}: {item.reason}</p>)}</div> : null}
+                  {scoringJob.data.results.failures?.length ? <div className="space-y-1 text-xs text-risk-high"><p className="font-medium">Failures</p>{scoringJob.data.results.failures.slice(0, 4).map((item, index) => <p key={`${item.invoiceId ?? "job"}-${index}`}>{item.invoiceId ? `${item.invoiceId}: ` : ""}{item.reason}</p>)}</div> : null}
+                  {latestScoringResult ? <p className="text-xs text-muted-foreground">Latest saved output for {latestScoringResult.invoiceId}: {latestScoringResult.probability == null ? "classifier pending" : `${(latestScoringResult.probability * 100).toFixed(1)}% · ${latestScoringResult.predictedLate ? "predicted late" : "predicted not late"} · ${latestScoringResult.riskBand} risk`} · {latestScoringResult.predictedDelayDays == null ? "delay pending" : `${latestScoringResult.predictedDelayDays.toFixed(1)} days`} · {latestScoringResult.lateModelVersion} / {latestScoringResult.delayModelVersion} · {latestScoringResult.predictedAt ? formatDateTime(latestScoringResult.predictedAt) : ""}</p> : null}
+                </>
+              ) : scoringJobId && scoringJob.isError ? (
+                <p className="text-xs text-risk-high">Scoring progress could not be loaded. {scoringJob.error instanceof Error ? scoringJob.error.message : ""}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">Upload a CSV to start automatic scoring, or re-score changed invoices to check for updated model versions and invoice features.</p>
+              )}
+            </CardContent>
+          </Card>
+        ) : null}
 
         <div className="space-y-5">
           {healthData ? (

@@ -5,10 +5,9 @@ import { APP_NAME } from "@/lib/constants";
 import { API_BASE_URL } from "@/lib/constants";
 
 const DEMO_PROFILES: Record<Role, { name: string; email: string }> = {
-  admin: { name: "Alex Morgan", email: "admin@flowcred.ai" },
   business_owner: { name: "Priya Nair", email: "owner@flowcred.ai" },
   accountant: { name: "Daniel Reed", email: "accountant@flowcred.ai" },
-  collections: { name: "Maya Chen", email: "collections@flowcred.ai" },
+  collection_user: { name: "Maya Chen", email: "collections@flowcred.ai" },
 };
 
 interface AuthState {
@@ -54,7 +53,16 @@ export const useAuthStore = create<AuthState>()(
       updateProfile: (updates) =>
         set((state) => (state.user ? { user: { ...state.user, ...updates } } : state)),
     }),
-    { name: "flowcred-auth", version: 1 },
+    {
+      name: "flowcred-auth",
+      version: 2,
+      migrate: (persisted: unknown) => {
+        const state = persisted as { user?: SessionUser | null } | undefined;
+        if (state?.user?.role === ("admin" as Role)) state.user.role = "business_owner";
+        if (state?.user?.role === ("collections" as Role)) state.user.role = "collection_user";
+        return state as AuthState;
+      },
+    },
   ),
 );
 

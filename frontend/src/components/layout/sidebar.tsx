@@ -48,7 +48,7 @@ export function SidebarContent({
   onToggleCollapsed?: () => void;
   showCollapseToggle?: boolean;
 }) {
-  const role = useAuthStore((state) => state.user?.role ?? "admin");
+  const role = useAuthStore((state) => state.user?.role ?? "business_owner");
   const { pathname } = useLocation();
   const sections = navigateItemsForRole(role);
 

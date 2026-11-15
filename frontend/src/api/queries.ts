@@ -1,6 +1,7 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { api } from "@/api";
 import type { CustomerListParams, InvoiceListParams } from "@/types";
+import { useAuthStore } from "@/stores/auth";
 
 export const queryKeys = {
   dashboard: ["dashboard"] as const,
@@ -16,6 +17,8 @@ export const queryKeys = {
   dataQuality: ["data-quality"] as const,
   datasets: ["datasets"] as const,
   health: ["health"] as const,
+  capabilities: ["capabilities"] as const,
+  currentUser: ["current-user"] as const,
   search: (query: string) => ["search", query] as const,
 };
 
@@ -91,8 +94,17 @@ export function useDatasets() {
   return useQuery({ queryKey: queryKeys.datasets, queryFn: api.datasets, staleTime: 10 * 60_000 });
 }
 
-export function useHealth() {
-  return useQuery({ queryKey: queryKeys.health, queryFn: api.health, staleTime: 60_000 });
+export function useHealth(enabled = true) {
+  return useQuery({ queryKey: queryKeys.health, queryFn: ({ signal }) => api.health(signal), enabled, staleTime: 20_000, refetchInterval: enabled ? 30_000 : false });
+}
+
+export function useCapabilities(enabled = true) {
+  return useQuery({ queryKey: queryKeys.capabilities, queryFn: api.capabilities, enabled, staleTime: 60_000, refetchInterval: enabled ? 60_000 : false });
+}
+
+export function useSessionStatus(enabled = true) {
+  const hasToken = useAuthStore((state) => Boolean(state.accessToken));
+  return useQuery({ queryKey: queryKeys.currentUser, queryFn: api.currentUser, enabled: enabled && hasToken, staleTime: 60_000, retry: false });
 }
 
 export function useGlobalSearch(query: string) {

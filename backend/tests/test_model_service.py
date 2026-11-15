@@ -7,6 +7,7 @@ import pandas as pd
 import pytest
 from fastapi import HTTPException
 
+from app import main
 from app.ml import cluster_inference, delay_inference, late_inference
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -33,7 +34,56 @@ def test_late_payment_and_delay_are_actual_predictions(artifacts):
     late = late_inference(artifacts["late-payment"], invoice, history)
     delay = delay_inference(artifacts["payment-delay"], invoice, history)
     assert 0 <= late["probability"] <= 1 and late["modelVersion"]
+    assert late["predictedLate"] is (late["probability"] >= late["threshold"])
     assert isinstance(delay["predictedDelayDays"], float) and delay["interpretation"] in {"early", "on_time", "late"}
+
+def test_saved_invoice_history_excludes_future_and_same_day_payments(artifacts):
+    from datetime import date
+    from types import SimpleNamespace
+
+    invoice = SimpleNamespace(
+        invoice_id="target",
+        customer_id="customer",
+        invoice_date=date(2020, 5, 5),
+        invoice_amount=300.0,
+    )
+    previous = [
+        SimpleNamespace(
+            invoice_id="paid-before",
+            customer_id="customer",
+            invoice_date=date(2020, 4, 30),
+            payment_date=date(2020, 5, 4),
+            invoice_amount=100.0,
+            delay_days=2.0,
+            is_late=True,
+        ),
+        SimpleNamespace(
+            invoice_id="paid-after",
+            customer_id="customer",
+            invoice_date=date(2020, 5, 1),
+            payment_date=date(2020, 5, 6),
+            invoice_amount=200.0,
+            delay_days=4.0,
+            is_late=True,
+        ),
+        SimpleNamespace(
+            invoice_id="same-day",
+            customer_id="customer",
+            invoice_date=date(2020, 5, 5),
+            payment_date=date(2020, 5, 4),
+            invoice_amount=400.0,
+            delay_days=1.0,
+            is_late=True,
+        ),
+    ]
+
+    for model_id in ("late-payment", "payment-delay"):
+        history = main._history_features_as_of(invoice, previous, model_id)
+
+        assert history["previous_invoice_count"] == 1
+        assert history["previous_late_count"] == 1
+        assert history["previous_total_invoice_amount"] == 100.0
+        assert history["days_since_previous_invoice"] == 5.0
 
 def test_customer_cluster_uses_saved_pipeline(artifacts):
     rows = pd.read_csv(ROOT / "data" / "processed" / "customer_behavior_features.csv", nrows=1)

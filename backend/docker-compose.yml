@@ -24,8 +24,10 @@ services:
       CORS_ORIGINS: http://localhost:8080
       DATA_DIR: /srv/flowcred/data
       MODEL_DIR: /srv/flowcred/models
+      BUSINESS_TIMEZONE: ${BUSINESS_TIMEZONE:-UTC}
       DATABASE_URL: postgresql+psycopg://flowcred:${POSTGRES_PASSWORD}@db:5432/flowcred
       JWT_SECRET_KEY: ${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in backend/.env}
+      BOOTSTRAP_OWNER_EMAIL: ${BOOTSTRAP_OWNER_EMAIL:-${BOOTSTRAP_ADMIN_EMAIL:-}}
       ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
       REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-14}
     volumes:

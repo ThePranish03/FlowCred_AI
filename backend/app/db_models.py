@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from sqlalchemy import Boolean, CheckConstraint, Date, DateTime, ForeignKey, Index, Integer, JSON, Numeric, String, Text
+from sqlalchemy import Boolean, CheckConstraint, Date, DateTime, ForeignKey, Index, Integer, JSON, Numeric, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
 
@@ -40,7 +40,7 @@ class Invoice(Base):
     __table_args__ = (
         CheckConstraint("invoice_amount > 0", name="ck_invoices_positive_amount"),
         CheckConstraint("invoice_currency IN ('USD', 'CAD')", name="ck_invoices_currency"),
-        CheckConstraint("invoice_status IS NULL OR invoice_status IN ('paid', 'open')", name="ck_invoices_status"),
+        CheckConstraint("invoice_status IS NULL OR invoice_status IN ('paid', 'open', 'overdue')", name="ck_invoices_status"),
         Index("ix_invoices_status_due", "invoice_status", "due_date"),
         Index("ix_invoices_currency_date", "invoice_currency", "invoice_date"),
     )
@@ -55,12 +55,38 @@ class Prediction(Base):
     probability: Mapped[float | None] = mapped_column(Numeric(8, 7))
     risk_band: Mapped[str | None] = mapped_column(String(16))
     model_version: Mapped[str | None] = mapped_column(String(96))
+    input_fingerprint: Mapped[str | None] = mapped_column(String(64))
     predicted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
     details: Mapped[dict | None] = mapped_column(JSON)
     __table_args__ = (
         CheckConstraint("probability IS NULL OR (probability >= 0 AND probability <= 1)", name="ck_predictions_probability_range"),
         Index("ix_predictions_invoice_type_date", "invoice_id", "prediction_type", "predicted_at"),
+        UniqueConstraint("invoice_id", "prediction_type", "model_version", "input_fingerprint", name="uq_prediction_invoice_model_input"),
     )
+
+class InvoiceScoringState(Base):
+    __tablename__ = "invoice_scoring_states"
+    invoice_id: Mapped[str] = mapped_column(ForeignKey("invoices.invoice_id", ondelete="CASCADE"), primary_key=True)
+    status: Mapped[str] = mapped_column(String(24), nullable=False)
+    reason: Mapped[str | None] = mapped_column(Text)
+    input_fingerprint: Mapped[str] = mapped_column(String(64), nullable=False)
+    late_model_version: Mapped[str | None] = mapped_column(String(96))
+    delay_model_version: Mapped[str | None] = mapped_column(String(96))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow)
+
+class ScoringJob(Base):
+    __tablename__ = "scoring_jobs"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    status: Mapped[str] = mapped_column(String(24), nullable=False, default="queued")
+    total: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    processed: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    succeeded: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    skipped: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    failed: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    results: Mapped[dict | None] = mapped_column(JSON)
+    requested_by: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow, onupdate=utcnow)
 
 class CustomerSegment(Base):
     __tablename__ = "customer_segments"

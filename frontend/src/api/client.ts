@@ -47,7 +47,11 @@ http.interceptors.response.use(
       }
     }
     const detail = error?.response?.data?.detail ?? error?.response?.data?.message;
+    const detailMessage = typeof detail === "object" && detail !== null && "message" in detail
+      ? String((detail as { message: unknown }).message)
+      : undefined;
     const message =
+      detailMessage ||
       (typeof detail === "string" && detail) ||
       (status ? `Request failed with status ${status}.` : "The backend could not be reached.");
     return Promise.reject({ status, message, detail } satisfies ApiErrorShape);

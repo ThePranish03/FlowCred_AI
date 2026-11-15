@@ -20,20 +20,18 @@ import type { Role } from "@/types";
 export const APP_NAME = "FlowCred AI";
 export const APP_TAGLINE = "Explainable Accounts Receivable Intelligence System";
 
-export const ALL_ROLES: Role[] = ["admin", "business_owner", "accountant", "collections"];
+export const ALL_ROLES: Role[] = ["business_owner", "accountant", "collection_user"];
 
 export const ROLE_LABELS: Record<Role, string> = {
-  admin: "Administrator",
   business_owner: "Business Owner",
   accountant: "Accountant",
-  collections: "Collections User",
+  collection_user: "Collections User",
 };
 
 export const ROLE_DESCRIPTIONS: Record<Role, string> = {
-  admin: "Full workspace access, model monitoring and data operations.",
-  business_owner: "Full analytics, model oversight and workspace settings.",
+  business_owner: "Workspace ownership, analytics, owner-only data imports, model monitoring and settings.",
   accountant: "Receivables analytics, customer intelligence and reporting.",
-  collections: "Invoice, risk and delay workflows for collections follow-up.",
+  collection_user: "Intended for assigned overdue work; invoice assignment and follow-up tools are not implemented yet.",
 };
 
 export interface NavItem {
@@ -50,10 +48,10 @@ export interface NavSection {
   items: NavItem[];
 }
 
-const ANALYTICS_ROLES: Role[] = ALL_ROLES;
-const INTELLIGENCE_ROLES: Role[] = ["admin", "business_owner", "accountant"];
-const MODEL_ROLES: Role[] = ["admin", "business_owner"];
-const WORKSPACE_ROLES: Role[] = ["admin", "business_owner"];
+const ANALYTICS_ROLES: Role[] = ["business_owner", "accountant"];
+const INTELLIGENCE_ROLES: Role[] = ["business_owner", "accountant"];
+const MODEL_ROLES: Role[] = ["business_owner"];
+const WORKSPACE_ROLES: Role[] = ["business_owner"];
 
 export const NAV_SECTIONS: NavSection[] = [
   {
@@ -141,14 +139,14 @@ export const NAV_SECTIONS: NavSection[] = [
         title: "Reports",
         href: "/reports",
         icon: LineChart,
-        roles: ALL_ROLES,
+        roles: ANALYTICS_ROLES,
         description: "Generate and export reports",
       },
       {
         title: "Cash Flow Forecast",
         href: "/cash-flow-forecast",
         icon: WalletCards,
-        roles: ALL_ROLES,
+        roles: ANALYTICS_ROLES,
         badge: "Soon",
         description: "Planned forecasting capability",
       },
@@ -173,9 +171,9 @@ const PATH_ROLES: { prefix: string; roles: Role[] }[] = [
   { prefix: "/insights", roles: INTELLIGENCE_ROLES },
   { prefix: "/model-performance", roles: MODEL_ROLES },
   { prefix: "/data-management", roles: MODEL_ROLES },
-  { prefix: "/reports", roles: ALL_ROLES },
+  { prefix: "/reports", roles: ANALYTICS_ROLES },
   { prefix: "/settings", roles: WORKSPACE_ROLES },
-  { prefix: "/cash-flow-forecast", roles: ALL_ROLES },
+  { prefix: "/cash-flow-forecast", roles: ANALYTICS_ROLES },
 ];
 
 export function canAccessPath(role: Role, pathname: string) {
@@ -260,6 +258,13 @@ export const STATUS_CONFIG = {
     bg: "bg-primary-soft",
     border: "border-brand-accent/20",
   },
+  overdue: {
+    label: "Overdue",
+    dot: "bg-risk-medium",
+    text: "text-risk-medium",
+    bg: "bg-risk-medium-soft",
+    border: "border-risk-medium/20",
+  },
 } as const;
 
 export const API_MODE = (import.meta.env.VITE_API_MODE ?? "demo") as "demo" | "live";
@@ -276,9 +281,12 @@ export const DEMO_ENDPOINTS = [
   { method: "GET", path: "/delay-predictions/summary", demo: "Recorded delay summary" },
   { method: "GET", path: "/models/metrics", demo: "Recorded metrics and recomputed curves" },
   { method: "GET", path: "/insights", demo: "Recorded global feature importance" },
-  { method: "POST", path: "/invoices/predict/late-payment", demo: "Pending — requires backend inference" },
-  { method: "POST", path: "/invoices/predict/payment-delay", demo: "Pending — requires backend inference" },
-  { method: "POST", path: "/datasets/upload", demo: "Pending — validated client-side only" },
+  { method: "GET", path: "/datasets/quality", demo: "Recorded dataset quality profile" },
+  { method: "GET", path: "/datasets", demo: "Dataset and artifact inventory" },
+  { method: "GET", path: "/search?q=", demo: "Invoice and customer search" },
+  { method: "POST", path: "/invoices/predict/late-payment", demo: "Live classifier inference" },
+  { method: "POST", path: "/invoices/predict/payment-delay", demo: "Live delay inference" },
+  { method: "POST", path: "/datasets/upload", demo: "Authenticated CSV validation and persistence" },
   { method: "GET", path: "/health", demo: "Demo status object" },
 ];
 

@@ -1,4 +1,6 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -9,7 +11,8 @@ import {
   LineChart,
   UserRound,
 } from "lucide-react";
-import { useInvoice } from "@/api/queries";
+import { api } from "@/api";
+import { queryKeys, useInvoice } from "@/api/queries";
 import { PageHeader } from "@/components/common/page-header";
 import { KpiCard } from "@/components/common/kpi-card";
 import { ChartCard } from "@/components/common/chart-card";
@@ -24,10 +27,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { RISK_CONFIG } from "@/lib/constants";
+import { API_MODE, RISK_CONFIG } from "@/lib/constants";
 import {
   formatCurrency,
   formatDate,
+  formatDateTime,
   formatDelayShort,
   formatNumber,
   formatPercent,
@@ -35,10 +39,58 @@ import {
 } from "@/lib/format";
 import type { Invoice } from "@/types";
 
+function errorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "object" && error !== null && "message" in error && typeof error.message === "string") {
+    return error.message;
+  }
+  return "Model inference failed.";
+}
+
 export default function InvoiceDetailPage() {
   const { invoiceId } = useParams<{ invoiceId: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data, isLoading, isError, error, refetch } = useInvoice(invoiceId);
+  const scoreMutation = useMutation({
+    mutationFn: async ({
+      invoice: scoredInvoice,
+      scoreLate,
+      scoreDelay,
+    }: {
+      invoice: Invoice;
+      scoreLate: boolean;
+      scoreDelay: boolean;
+    }) => {
+      const request = {
+        invoice: {
+          id: scoredInvoice.id,
+          amount: scoredInvoice.amount,
+          currency: scoredInvoice.currency,
+          invoiceDate: scoredInvoice.invoiceDate,
+          dueDate: scoredInvoice.dueDate,
+          paymentTerms: scoredInvoice.paymentTerms,
+        },
+      };
+      const pending: Promise<unknown>[] = [];
+      if (scoreLate) pending.push(api.predictLatePayment(request));
+      if (scoreDelay) pending.push(api.predictPaymentDelay(request));
+      const results = await Promise.allSettled(pending);
+      const failures = results.flatMap((result) =>
+        result.status === "rejected" ? [errorMessage(result.reason)] : [],
+      );
+      if (failures.length) throw new Error(failures.join(" "));
+    },
+    onSuccess: () => toast.success("Available model predictions saved."),
+    onError: (mutationError) => toast.error(errorMessage(mutationError)),
+    onSettled: async (_result, _error, variables) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.invoice(variables.invoice.id) }),
+        queryClient.invalidateQueries({ queryKey: ["invoices"] }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.customer(variables.invoice.customerId) }),
+      ]);
+    },
+  });
 
   if (isLoading) return <PageSkeleton />;
   if (isError || !data) {
@@ -60,6 +112,13 @@ export default function InvoiceDetailPage() {
   const { invoice, customer, cluster, history, context } = data;
   const bandConfig = invoice.riskBand ? RISK_CONFIG[invoice.riskBand] : null;
   const hasScore = invoice.lateProbability != null;
+  const latePrediction = data.predictionHistory?.find((item) => item.type === "late-payment");
+  const delayPrediction = data.predictionHistory?.find((item) => item.type === "payment-delay");
+  const threshold = latePrediction?.details?.threshold ?? 0.45;
+  const predictedLate = invoice.lateProbability == null ? null : latePrediction?.details?.predictedLate ?? invoice.lateProbability >= threshold;
+  const delayDirection =
+    invoice.predictedDelay == null ? null : invoice.predictedDelay < 0 ? "early" : invoice.predictedDelay > 0 ? "late" : "on time";
+  const hasMissingScores = invoice.lateProbability == null || invoice.predictedDelay == null;
 
   const historyColumns: DataTableColumn<Invoice>[] = [
     {
@@ -150,15 +209,15 @@ export default function InvoiceDetailPage() {
         />
         <KpiCard
           label="Late probability"
-          value={hasScore ? formatProbability(invoice.lateProbability) : "Not scored"}
-          hint={hasScore ? `Operational band: ${invoice.riskBand}` : "No classifier output recorded"}
+          value={hasScore ? formatProbability(invoice.lateProbability) : invoice.status === "paid" ? "Not applicable" : "Not scored"}
+          hint={hasScore ? `${predictedLate ? "Predicted late" : "Predicted not late"} · ${invoice.riskBand} risk` : invoice.status === "paid" ? "Paid invoices are not forecast" : "No classifier output recorded"}
           icon={Info}
           tone={invoice.riskBand === "High" ? "risk" : invoice.riskBand === "Medium" ? "warning" : "success"}
         />
         <KpiCard
           label="Predicted delay"
-          value={formatDelayShort(invoice.predictedDelay)}
-          hint="Signed regression estimate in days"
+          value={invoice.status === "paid" && invoice.predictedDelay == null ? "Not applicable" : formatDelayShort(invoice.predictedDelay)}
+          hint={delayDirection ? `${delayDirection} · signed estimate in days` : invoice.status === "paid" ? "Paid invoices are not forecast" : "Signed regression estimate in days"}
           icon={CalendarClock}
           tone="teal"
         />
@@ -181,11 +240,43 @@ export default function InvoiceDetailPage() {
         />
       </div>
 
-      {!hasScore ? (
+      {latePrediction || delayPrediction ? (
         <InfoNote>
-          <strong>No model score for this invoice.</strong> The late-payment and delay models were applied to a
-          chronological test window only, so invoices outside that window remain unscored. Nothing is approximated in the
-          browser. Connect the inference API to score new invoices on demand.
+          <strong>Saved model outputs.</strong>{" "}
+          {latePrediction ? `Late-payment model ${latePrediction.modelVersion ?? "version unavailable"} · ${formatDateTime(latePrediction.predictedAt)}.` : "Late-payment output is not recorded."}{" "}
+          {delayPrediction ? `Payment-delay model ${delayPrediction.modelVersion ?? "version unavailable"} · ${formatDateTime(delayPrediction.predictedAt)}.` : "Payment-delay output is not recorded."}
+        </InfoNote>
+      ) : null}
+
+      {data.scoringState?.status === "ineligible" ? (
+        <InfoNote variant="warning">
+          <strong>Prediction skipped.</strong> {data.scoringState.reason ?? "Required model inputs are missing."} Features are rechecked when this invoice is updated or scoring is rerun.
+        </InfoNote>
+      ) : null}
+
+      {hasMissingScores && invoice.status !== "paid" ? (
+        <InfoNote>
+          <strong>One or more model outputs are not recorded for this invoice.</strong> Eligible unpaid invoices are scored automatically after upload. Live inference uses the saved models and is never approximated in the browser.
+          {API_MODE === "live" ? (
+            <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+              <span>Retry the available model endpoints and save their actual results.</span>
+              <Button
+                size="sm"
+                disabled={scoreMutation.isPending}
+                onClick={() =>
+                  scoreMutation.mutate({
+                    invoice,
+                    scoreLate: invoice.lateProbability == null,
+                    scoreDelay: invoice.predictedDelay == null,
+                  })
+                }
+              >
+                {scoreMutation.isPending ? "Scoring..." : "Score missing outputs"}
+              </Button>
+            </div>
+          ) : (
+            <p className="mt-2">Switch to live API mode and connect the backend to score invoices on demand.</p>
+          )}
         </InfoNote>
       ) : null}
 
@@ -268,9 +359,9 @@ export default function InvoiceDetailPage() {
                     <RiskBadge band={invoice.riskBand} />
                   </div>
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-muted-foreground">Binary late flag at 0.45</span>
-                    <Badge variant={invoice.lateProbability! >= 0.45 ? "high" : "low"}>
-                      {invoice.lateProbability! >= 0.45 ? "Predicted late" : "Predicted on time"}
+                    <span className="text-muted-foreground">Binary decision at {formatPercent(threshold, true)}</span>
+                    <Badge variant={predictedLate ? "high" : "low"}>
+                      {predictedLate ? "Predicted late" : "Predicted on time"}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between gap-2">
@@ -285,10 +376,20 @@ export default function InvoiceDetailPage() {
               </>
             ) : (
               <p className="text-sm leading-relaxed text-muted-foreground">
-                This invoice has no recorded late-payment probability. Score it through the inference endpoint once the
-                backend is connected; the interface will not estimate a score locally.
+                This invoice has no recorded late-payment probability. Use the live inference action above when available;
+                the interface will not estimate a score locally.
               </p>
             )}
+            {latePrediction ? (
+              <p className="text-[11px] text-muted-foreground">
+                {latePrediction.modelVersion ?? "Late-payment model"} · scored {new Date(latePrediction.predictedAt).toLocaleString()}
+              </p>
+            ) : null}
+            {delayPrediction ? (
+              <p className="text-[11px] text-muted-foreground">
+                {delayPrediction.modelVersion ?? "Payment-delay model"} · scored {new Date(delayPrediction.predictedAt).toLocaleString()}
+              </p>
+            ) : null}
           </CardContent>
         </Card>
       </div>

@@ -20,7 +20,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useModelMetrics } from "@/api/queries";
+import { useCapabilities, useHealth, useModelMetrics, useSessionStatus } from "@/api/queries";
 import { PageHeader } from "@/components/common/page-header";
 import { InfoNote, SectionHeading } from "@/components/common/notes";
 import { ErrorState } from "@/components/common/states";
@@ -47,7 +47,7 @@ import {
   ROLE_LABELS,
   WORKSPACES,
 } from "@/lib/constants";
-import { formatDate, formatNumber, formatPercent } from "@/lib/format";
+import { formatDate, formatDateTime, formatNumber, formatPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/types";
 
@@ -95,12 +95,13 @@ const NOTIFICATION_OPTIONS: {
 ];
 
 const MISSING_INTEGRATIONS = [
-  "POST /invoices/predict/late-payment — live inference from the XGBoost classifier",
-  "POST /invoices/predict/payment-delay — live inference from the HistGradientBoosting regressor",
-  "POST /datasets/upload — server-side validation, storage and reprocessing",
-  "Authentication and SSO — current role selection is a local demo, not an identity provider",
-  "Scheduled report delivery and server-side report storage",
-  "Cash-flow forecasting model and endpoints",
+  "User administration — no backend user-management or permission-editing interface is implemented.",
+  "Collection assignment and follow-ups — no invoice assignment, commitment, or collection-action service exists.",
+  "External SSO — no external identity provider is configured; JWT authentication is available.",
+  "Scheduled report delivery — no scheduler or delivery worker is implemented.",
+  "Server-side report storage — generated reports are not persisted by a backend service.",
+  "Multi-workspace tenancy — records currently share one workspace.",
+  "Cash-flow forecasting — no verified trained forecasting artifact or prediction endpoint exists.",
 ];
 
 function initials(name: string) {
@@ -138,6 +139,14 @@ export default function SettingsPage() {
   const tabFromUrl = (TABS.find((entry) => entry.id === searchParams.get("tab"))?.id ?? "profile") as TabId;
   const [tab, setTab] = useState<TabId>(tabFromUrl);
   useEffect(() => setTab(tabFromUrl), [tabFromUrl]);
+  const connection = useHealth(tab === "api" || tab === "models");
+  const capabilities = useCapabilities(tab === "api");
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const sessionStatus = useSessionStatus(tab === "api" && API_MODE === "live");
+  const [lastSuccessfulHealth, setLastSuccessfulHealth] = useState<string | null>(null);
+  useEffect(() => {
+    if (API_MODE === "live" && connection.data?.status === "ok") setLastSuccessfulHealth(connection.data.timestamp);
+  }, [connection.data]);
 
   const [profile, setProfile] = useState({
     name: user?.name ?? "",
@@ -593,10 +602,8 @@ export default function SettingsPage() {
                 </CardContent>
               </Card>
 
-              <InfoNote variant="warning">
-                <strong>Demo authentication.</strong> The login screen maps a role to a local profile; there is no password
-                verification, session token or server-side authorisation. Production access control must be enforced by the
-                backend, not only in the UI.
+              <InfoNote variant={API_MODE === "demo" ? "warning" : "success"}>
+                {API_MODE === "demo" ? <><strong>Demo authentication.</strong> Role selection creates a local profile with no password verification or server-side authorization.</> : <><strong>JWT authentication is active.</strong> The backend verifies access tokens, rotates refresh tokens, and applies role checks. External SSO is not configured. Public registration always receives accountant access.</>}
               </InfoNote>
             </div>
           </TabsContent>
@@ -609,11 +616,29 @@ export default function SettingsPage() {
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div>
                         <CardTitle className="text-base">Current connection</CardTitle>
-                        <p className="text-xs text-muted-foreground">Selected through Vite environment variables.</p>
+                        <p className="text-xs text-muted-foreground">Connection state comes from the API health endpoint.</p>
                       </div>
-                      <Badge variant={API_MODE === "live" ? "low" : "accent"}>
-                        {API_MODE === "live" ? "Live backend" : "Demo adapter"}
+                      <Badge variant={API_MODE === "demo" ? "accent" : connection.isFetching ? "medium" : connection.isError ? "high" : connection.data?.status === "ok" ? "low" : connection.data ? "medium" : "high"}>
+                        {API_MODE === "demo" ? "Demo adapter" : connection.isFetching ? "Checking" : connection.isError ? "Disconnected" : connection.data?.status === "ok" ? "Connected" : connection.data ? "Degraded" : "Disconnected"}
                       </Badge>
+                    </div>
+
+                    <div className="grid gap-3 rounded-lg border border-border px-3.5 py-3 sm:grid-cols-2">
+                      <div><p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Backend version</p><p className="mt-0.5 text-xs text-foreground">{connection.data?.apiVersion ?? "—"}</p></div>
+                      <div><p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Environment</p><p className="mt-0.5 capitalize text-xs text-foreground">{connection.data?.environment ?? (API_MODE === "demo" ? "Demo fixtures" : "Unknown")}</p></div>
+                      <div><p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Database</p><p className="mt-0.5 capitalize text-xs text-foreground">{connection.data?.database?.status ?? (API_MODE === "demo" ? "Not connected" : "Unknown")}</p></div>
+                      <div><p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Last successful health check</p><p className="mt-0.5 text-xs text-foreground">{lastSuccessfulHealth ? formatDateTime(lastSuccessfulHealth) : "Not checked"}</p></div>
+                    </div>
+                    {connection.isError ? <p role="alert" className="text-xs text-risk-high">{connection.error instanceof Error ? connection.error.message : "Health endpoint did not return a valid response."}</p> : null}
+                    {API_MODE === "live" && connection.data?.models ? <div className="flex flex-wrap gap-2">{connection.data.models.map((model) => <Badge key={model.id} variant={model.status === "available" ? "low" : "high"}>{model.id}: {model.status}</Badge>)}</div> : null}
+                    <p className="text-[11px] text-muted-foreground">Authentication: {API_MODE === "demo" ? "Local demo session" : connection.data?.authentication?.jwt === "active" ? `JWT active · signed in as ${ROLE_LABELS[user.role]}` : "JWT status unavailable"}. SSO: {connection.data?.authentication?.sso === "not_configured" || API_MODE === "demo" ? "Not configured" : connection.data?.authentication?.sso ?? "Unknown"}.</p>
+                    {capabilities.isError ? <p role="alert" className="text-xs text-risk-high">Capability registry could not be reached: {capabilities.error instanceof Error ? capabilities.error.message : "API request failed."}</p> : null}
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button variant="outline" onClick={() => void connection.refetch()} disabled={connection.isFetching}>
+                        <RefreshCw className={cn("h-3.5 w-3.5", connection.isFetching && "animate-spin")} /> Retry connection
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => void copyBaseUrl()}><Copy className="h-3.5 w-3.5" />Copy</Button>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -624,10 +649,6 @@ export default function SettingsPage() {
                         </p>
                         <code className="mt-0.5 block truncate text-xs text-foreground">{API_BASE_URL}</code>
                       </div>
-                      <Button variant="ghost" size="sm" onClick={() => void copyBaseUrl()}>
-                        <Copy className="h-3.5 w-3.5" />
-                        Copy
-                      </Button>
                     </div>
 
                     <div>
@@ -635,8 +656,11 @@ export default function SettingsPage() {
                         Switch to the backend
                       </p>
                       <pre className="overflow-x-auto rounded-lg border border-border bg-[#0F1E33] px-4 py-3 text-[11px] leading-relaxed text-[#D7E3F4]">
-{`# .env.local
+{`# Docker Compose through the same-origin Nginx proxy
 VITE_API_MODE=live
+VITE_API_BASE_URL=/api/v1
+
+# Local FastAPI development
 VITE_API_BASE_URL=http://localhost:8000/api/v1`}
                       </pre>
                       <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
@@ -670,7 +694,7 @@ VITE_API_BASE_URL=http://localhost:8000/api/v1`}
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base">Missing integrations</CardTitle>
-                    <p className="text-xs text-muted-foreground">Documented gaps, not simulated behaviour.</p>
+                    <p className="text-xs text-muted-foreground">Features without an implemented backend service.</p>
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2.5">
@@ -693,7 +717,7 @@ VITE_API_BASE_URL=http://localhost:8000/api/v1`}
                 <CardHeader className="pb-3">
                   <SectionHeading
                     title="Endpoint contract"
-                    description="The frontend consumes these paths. Paths marked pending require backend implementation."
+                    description="FastAPI route registration and access requirements come from its capability registry. POST routes are never probed with test data."
                   />
                 </CardHeader>
                 <CardContent className="px-0 pb-0">
@@ -703,13 +727,15 @@ VITE_API_BASE_URL=http://localhost:8000/api/v1`}
                         <tr>
                           <th className="px-5 py-2.5 font-semibold">Method</th>
                           <th className="px-3 py-2.5 font-semibold">Path</th>
-                          <th className="px-3 py-2.5 font-semibold">Demo behaviour</th>
+                          <th className="px-3 py-2.5 font-semibold">Access and last checked</th>
                           <th className="px-5 py-2.5 text-right font-semibold">Status</th>
                         </tr>
                       </thead>
                       <tbody>
                         {DEMO_ENDPOINTS.map((endpoint) => {
-                          const pending = endpoint.demo.toLowerCase().includes("pending");
+                          const capability = capabilities.data?.endpoints.find((item) => item.method === endpoint.method && item.path === endpoint.path);
+                          const status = API_MODE === "demo" ? "Demo only" : capabilities.isLoading || (capability?.authenticationRequired && accessToken && sessionStatus.isLoading) ? "Checking" : !capability?.implemented ? "Not implemented" : capability.authenticationRequired && (!accessToken || sessionStatus.isError) ? "Authentication required" : capability.authenticationRequired && !capability.roles.includes(sessionStatus.data?.role ?? user.role) ? "Permission denied" : connection.data?.status === "ok" ? "Available" : connection.data ? "Unavailable" : "Implemented";
+                          const tone = status === "Available" || status === "Demo only" ? "low" : status === "Checking" || status === "Implemented" ? "medium" : "high";
                           return (
                             <tr key={`${endpoint.method}-${endpoint.path}`} className="border-b border-border/70 last:border-0">
                               <td className="px-5 py-2.5">
@@ -720,9 +746,9 @@ VITE_API_BASE_URL=http://localhost:8000/api/v1`}
                               <td className="whitespace-nowrap px-3 py-2.5 font-mono text-[11px] text-foreground">
                                 {endpoint.path}
                               </td>
-                              <td className="px-3 py-2.5 text-muted-foreground">{endpoint.demo}</td>
+                              <td className="px-3 py-2.5 text-muted-foreground">{capability?.authenticationRequired ? `JWT · ${capability.roles.join(", ")}` : API_MODE === "demo" ? endpoint.demo : "Public status endpoint"}{capabilities.data?.checkedAt ? <span className="mt-0.5 block text-[10px]">Checked {formatDateTime(capabilities.data.checkedAt)}</span> : null}</td>
                               <td className="px-5 py-2.5 text-right">
-                                <Badge variant={pending ? "medium" : "low"}>{pending ? "Pending backend" : "Demo ready"}</Badge>
+                                <Badge variant={tone}>{status}</Badge>
                               </td>
                             </tr>
                           );
@@ -732,6 +758,22 @@ VITE_API_BASE_URL=http://localhost:8000/api/v1`}
                   </div>
                 </CardContent>
               </Card>
+
+              <section className="space-y-3" aria-labelledby="api-model-status-heading">
+                <SectionHeading title="Model integrations" description="Readiness reported by the backend after loading and validating each saved estimator and preprocessing pipeline." />
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  {[
+                    { id: "late-payment", name: "Late-payment classification", algorithm: "XGBoost Classifier" },
+                    { id: "payment-delay", name: "Payment-delay regression", algorithm: "HistGradientBoosting Regressor" },
+                    { id: "clustering", name: "Customer behaviour clustering", algorithm: "K-Means · 6 clusters" },
+                  ].map((model) => {
+                    const state = connection.data?.models.find((entry) => entry.id === model.id);
+                    const readiness = API_MODE === "demo" ? "Demo only" : state?.status === "available" ? "Ready" : state?.status ?? (connection.isError ? "Unavailable" : "Checking");
+                    return <Card key={model.id}><CardContent className="space-y-2 p-4"><div className="flex items-start justify-between gap-2"><p className="text-sm font-semibold text-foreground">{model.name}</p><Badge variant={readiness === "Ready" ? "low" : readiness === "Demo only" || readiness === "Checking" ? "medium" : "high"}>{readiness}</Badge></div><p className="text-xs text-muted-foreground">{model.algorithm}</p>{API_MODE === "live" ? <><p className="text-[11px] text-muted-foreground">Loading status: {state?.loadingStatus ?? "Not reported"}</p><p className="text-[11px] text-muted-foreground">Version: {state?.version ?? "Not reported"}</p>{state?.lastLoadedAt ? <p className="text-[10px] text-muted-foreground">Loaded {formatDateTime(state.lastLoadedAt)}</p> : null}{state?.error ? <p className="text-[11px] text-risk-high">{state.error}</p> : null}</> : <p className="text-[11px] text-muted-foreground">Fixture metadata only; no live model status.</p>}</CardContent></Card>;
+                  })}
+                  <Card><CardContent className="space-y-2 p-4"><div className="flex items-start justify-between gap-2"><p className="text-sm font-semibold text-foreground">Cash-flow forecasting</p><Badge variant="medium">Coming Soon</Badge></div><p className="text-xs text-muted-foreground">No verified forecasting artifact or endpoint is available.</p></CardContent></Card>
+                </div>
+              </section>
 
               <div className="grid gap-5 lg:grid-cols-2">
                 <Card>

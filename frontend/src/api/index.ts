@@ -17,8 +17,10 @@ import type {
   SegmentsResponse,
   Customer,
   Invoice,
+  CapabilitiesResponse,
+  SessionUser,
 } from "@/types";
-import { request } from "./client";
+import { http, request } from "./client";
 import * as demo from "./demo";
 
 const isDemo = API_MODE === "demo";
@@ -30,6 +32,7 @@ export interface PredictionInput {
 
 export interface LatePaymentPrediction {
   probability: number;
+  predictedLate: boolean;
   riskBand: "Low" | "Medium" | "High";
   threshold: number;
   modelVersion: string;
@@ -41,6 +44,44 @@ export interface PaymentDelayPrediction {
   interpretation: "early" | "on_time" | "late";
   modelVersion: string;
   predictedAt: string;
+}
+
+export interface DatasetUploadResponse {
+  fileName: string;
+  totalRows: number;
+  validRows: number;
+  invalidRows: number;
+  duplicateRows: number;
+  issues: { row: number; column: string; message: string }[];
+  validationDate: string;
+  uploadStatus: "imported";
+  scoringStatus: "queued" | "queue_failed";
+  importedInvoices: number;
+  importedCustomers: number;
+  customersCreated: number;
+  customersReused: number;
+  rejectedRows: number;
+  scoringJob: ScoringJobResponse | null;
+  scoringError: string | null;
+}
+
+export interface ScoringJobResponse {
+  id: string;
+  status: "queued" | "running" | "completed" | "completed_with_errors" | "failed";
+  total: number;
+  processed: number;
+  succeeded: number;
+  skipped: number;
+  failed: number;
+  progressPercent: number;
+  results: {
+    successful?: { invoiceId: string; probability: number | null; predictedLate: boolean | null; riskBand: string | null; predictedDelayDays: number | null; lateModelVersion?: string; delayModelVersion?: string; predictedAt?: string }[];
+    skippedInvoices?: { invoiceId: string; reason: string }[];
+    failures?: { invoiceId?: string; reason: string }[];
+    rescore?: boolean;
+  };
+  createdAt: string;
+  updatedAt: string;
 }
 
 export const api = {
@@ -86,8 +127,35 @@ export const api = {
   datasets: (): Promise<DatasetsResponse> =>
     isDemo ? demo.getDatasets() : request({ url: "/datasets" }),
 
-  health: (): Promise<HealthResponse> =>
-    isDemo ? demo.getHealth() : request({ url: "/health" }),
+  health: async (signal?: AbortSignal): Promise<HealthResponse> => {
+    if (isDemo) return demo.getHealth();
+    const response = await http.get<HealthResponse>("/health", { signal, timeout: 5_000, validateStatus: (status) => status < 600 });
+    const data = response.data;
+    if (response.status < 200 || response.status >= 300 && response.status !== 503) throw new Error(`Health check failed (${response.status}).`);
+    if (!data || !["ok", "degraded"].includes(data.status) || data.mode !== "live" || typeof data.timestamp !== "string" || !Array.isArray(data.models) || !data.database) {
+      throw new Error("Health endpoint returned an invalid response.");
+    }
+    return data;
+  },
+
+  capabilities: (): Promise<CapabilitiesResponse> =>
+    isDemo
+      ? Promise.resolve({ checkedAt: new Date().toISOString(), endpoints: [], authentication: { jwt: "not_active", sso: "not_configured" }, reports: { scheduledDelivery: "not_implemented", serverStorage: "not_implemented" } })
+      : request({ url: "/capabilities", timeout: 5_000 }),
+
+  currentUser: (): Promise<SessionUser> => request({ url: "/auth/me" }),
+
+  uploadDataset: (file: File, onProgress?: (percent: number) => void): Promise<DatasetUploadResponse> => {
+    const body = new FormData();
+    body.append("file", file);
+    return request({ method: "POST", url: "/datasets/upload", data: body, onUploadProgress: (event) => { if (event.total) onProgress?.(Math.round(event.loaded * 100 / event.total)); } });
+  },
+
+  startBulkScoring: (rescore = false): Promise<ScoringJobResponse> =>
+    request({ method: "POST", url: "/datasets/scoring-jobs", data: { rescore } }),
+
+  scoringJob: (jobId: string): Promise<ScoringJobResponse> =>
+    request({ url: `/datasets/scoring-jobs/${encodeURIComponent(jobId)}` }),
 
   search: (query: string): Promise<SearchResponse> =>
     isDemo ? demo.search(query) : request({ url: "/search", params: { q: query } }),

@@ -1,0 +1,20 @@
+{
+  "model": "XGBoost",
+  "threshold_default_0_5": {
+    "accuracy": 0.7759,
+    "precision": 0.7279,
+    "recall": 0.6903,
+    "f1": 0.7086,
+    "roc_auc": 0.843,
+    "pr_auc": 0.8085
+  },
+  "threshold_operational": 0.45,
+  "operational": {
+    "accuracy": 0.7727,
+    "precision": 0.703,
+    "recall": 0.7343,
+    "f1": 0.7183,
+    "roc_auc": 0.843,
+    "pr_auc": 0.8085
+  }
+}
