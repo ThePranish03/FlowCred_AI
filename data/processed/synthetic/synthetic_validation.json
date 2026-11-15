@@ -1,0 +1,148 @@
+{
+  "passed": 28,
+  "failed": 0,
+  "ok": true,
+  "checks": [
+    {
+      "check": "invoice_schema",
+      "ok": true,
+      "detail": "all required columns present"
+    },
+    {
+      "check": "transaction_schema",
+      "ok": true,
+      "detail": "all required columns present"
+    },
+    {
+      "check": "invoice_count",
+      "ok": true,
+      "detail": "50,000 invoices"
+    },
+    {
+      "check": "invoice_ids_unique",
+      "ok": true,
+      "detail": "no duplicate invoice ids"
+    },
+    {
+      "check": "transaction_ids_unique",
+      "ok": true,
+      "detail": "no duplicate transaction ids"
+    },
+    {
+      "check": "transaction_invoice_integrity",
+      "ok": true,
+      "detail": "every transaction references a known invoice"
+    },
+    {
+      "check": "customer_referential_integrity",
+      "ok": true,
+      "detail": "every invoice references a known customer"
+    },
+    {
+      "check": "due_after_invoice",
+      "ok": true,
+      "detail": "every due date follows its invoice date"
+    },
+    {
+      "check": "payment_dates_parse",
+      "ok": true,
+      "detail": "all payment dates parse"
+    },
+    {
+      "check": "payment_after_invoice",
+      "ok": true,
+      "detail": "no payment predates its invoice"
+    },
+    {
+      "check": "no_payments_after_window",
+      "ok": true,
+      "detail": "ledger stops at observation end 2023-12-31"
+    },
+    {
+      "check": "currency_domain",
+      "ok": true,
+      "detail": "only USD and CAD present"
+    },
+    {
+      "check": "transaction_currency_match",
+      "ok": true,
+      "detail": "transaction currency matches its invoice"
+    },
+    {
+      "check": "invoice_amount_positive",
+      "ok": true,
+      "detail": "all invoice amounts are positive"
+    },
+    {
+      "check": "transaction_amount_positive",
+      "ok": true,
+      "detail": "all payments are positive"
+    },
+    {
+      "check": "no_overpayment",
+      "ok": true,
+      "detail": "no invoice received more than its amount"
+    },
+    {
+      "check": "payment_reconciliation",
+      "ok": true,
+      "detail": "max |ledger - invoice| = 0.0000"
+    },
+    {
+      "check": "outstanding_consistency",
+      "ok": true,
+      "detail": "outstanding = amount - received"
+    },
+    {
+      "check": "outstanding_non_negative",
+      "ok": true,
+      "detail": "no negative outstanding balances"
+    },
+    {
+      "check": "partial_payment_consistency",
+      "ok": true,
+      "detail": "partial invoices have ledger entries"
+    },
+    {
+      "check": "paid_invoices_settled",
+      "ok": true,
+      "detail": "paid invoices are fully covered"
+    },
+    {
+      "check": "open_invoices_unpaid",
+      "ok": true,
+      "detail": "open invoices have no receipts"
+    },
+    {
+      "check": "censoring_present",
+      "ok": true,
+      "detail": "1,924 invoices flagged censored"
+    },
+    {
+      "check": "censoring_correct",
+      "ok": true,
+      "detail": "recent unsettled invoices are flagged rather than called unpaid"
+    },
+    {
+      "check": "complete_rows_consistent",
+      "ok": true,
+      "detail": "complete rows reconcile to their status"
+    },
+    {
+      "check": "metadata_complete",
+      "ok": true,
+      "detail": "all required metadata keys present"
+    },
+    {
+      "check": "metadata_counts_match",
+      "ok": true,
+      "detail": "metadata counts match the frames"
+    },
+    {
+      "check": "synthetic_designated",
+      "ok": true,
+      "detail": "dataset is explicitly marked synthetic"
+    }
+  ],
+  "failures": []
+}
