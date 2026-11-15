@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -56,7 +57,7 @@ def main() -> None:
     truth = delay_rows["delay_days"].to_numpy(dtype=float)
     mae = float(np.mean(np.abs(truth - delay_pred)))
     rmse = float(np.sqrt(np.mean(np.square(truth - delay_pred))))
-    recorded_delay = pd.read_csv(ROOT / "reports" / "payment_delay_test_predictions.csv")
+    recorded_delay = pd.read_csv(ROOT / "reports" / "payment_delay" / "payment_delay_test_predictions.csv")
     delay_rows["_id"] = pd.to_numeric(delay_rows["invoice_id"], errors="coerce")
     recorded_delay["_id"] = pd.to_numeric(recorded_delay["invoice_id"], errors="coerce")
     delay_rows["predicted"] = delay_pred
@@ -81,5 +82,40 @@ def main() -> None:
     agree = float((cluster_cmp["predicted_cluster"] == cluster_cmp["cluster_id"]).mean()) if len(cluster_cmp) else float("nan")
     print(f"customer-clustering: {len(cluster_pred)} customers; matched_saved_assignments={len(cluster_cmp)}; exact_agreement={agree:.6f}; clusters={sorted(set(cluster_pred.tolist()))}")
     assert len(cluster_cmp) == len(cluster_rows) and agree == 1.0
+
+    # ------------------------------------------------------------------
+    # Model 4 — aggregate cash-flow forecasting
+    # ------------------------------------------------------------------
+    from app import forecasting  # backend/ is already on sys.path
+
+    forecast_meta = json.loads((models / "cash_flow_model_metadata.json").read_text(encoding="utf-8"))
+    loaded = forecasting.load_forecast_models()
+    assert set(loaded) == {"USD", "CAD"}, f"forecast artifacts not loadable: {set(loaded)}"
+
+    decisions = {d["currency"]: d for d in forecast_meta["decisions"]}
+    for currency in ("USD", "CAD"):
+        artifact = loaded[currency]
+        assert artifact["algorithm"] == decisions[currency]["selected"], (
+            f"{currency}: artifact algorithm {artifact['algorithm']} != selected "
+            f"{decisions[currency]['selected']}"
+        )
+        assert artifact["trained_through"] == "2020-03-08"
+
+        for horizon in (7, 30, 90):
+            payload = forecasting.build_forecast_payload(currency, horizon)
+            daily_sum = sum(d["estimated"] for d in payload["daily"])
+            assert abs(daily_sum - payload["totals"]["predicted"]) < 0.01, (
+                f"{currency} h{horizon}: SUM(daily) {daily_sum} != total "
+                f"{payload['totals']['predicted']}"
+            )
+            assert len(payload["daily"]) == horizon
+            assert payload["totals"]["lower"] <= payload["totals"]["predicted"] <= payload["totals"]["upper"]
+            assert all(d["isEstimate"] for d in payload["daily"])
+            assert all(math.isfinite(w["predicted"]) for w in payload["weekly"])
+        print(
+            f"cash-flow-{currency.lower()}: algorithm={artifact['algorithm']}; "
+            f"weeks={len(artifact['history_values'])}; replay_origins={len(artifact['replay'])}; "
+            f"h30_total={forecasting.build_forecast_payload(currency, 30)['totals']['predicted']:.2f}"
+        )
 
 if __name__ == "__main__": main()
