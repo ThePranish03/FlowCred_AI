@@ -109,7 +109,7 @@ Current snapshot:
 - Global feature importance is labelled as global; per-invoice SHAP is shown only if the backend supplies it.
 - Mixed-currency aggregates are labelled nominal; no FX conversion is implied.
 - K=6 is disclosed as a modelling choice; silhouette peaks at K=2 in the recorded comparison.
-- `/cash-flow-forecast` is a Coming Soon page with no invented projections.
+- `/cash-flow-forecast` shows a historical weekly forecast per currency, labelled with its as-of date, invoice-clearance proxy limitation and derived-daily-estimate status.
 - Model metrics are labelled as recorded historical evaluation, not guarantees.
 
 ## CSV validation
@@ -187,7 +187,7 @@ Reports are assembled client-side from API responses. CSV and PDF downloads stay
 - real authentication, SSO and server-side authorization
 - scheduled or emailed report delivery
 - multi-workspace tenancy
-- cash-flow forecasting model and endpoints
+- persisted cash-flow run history and approval workflow
 
 These are documented in the UI and are not simulated.
 

@@ -41,7 +41,7 @@ FlowCred AI is a decision-support system. Predictions should be reviewed alongsi
 - Nginx serves the frontend and proxies API requests to FastAPI.
 - Strict readiness check: database and all three model pipelines must be available.
 
-> **Scope note:** Cash-inflow forecasting is not currently available because this repository does not contain a verified trained forecasting artifact.
+> **Scope note:** Cash-inflow forecasting is available as a weekly, per-currency model (USD and CAD separately). Its target is an **invoice-clearance proxy**, not verified bank receipts, and forecasts are historical simulations bounded by the dataset's 2020-03-13 cutoff. See `documents/cash_flow_forecasting.md`.
 
 ## Architecture
 
@@ -655,7 +655,7 @@ Model research/training is separate from starting the web application. The deplo
 - A shared rate limiter has not yet been implemented.
 - Read auditing is incomplete; not every read operation is recorded.
 - Organization-level tenant isolation is not implemented; current authorization is within a shared workspace.
-- Cash-inflow forecasting is unavailable because there is no verified forecasting model artifact.
+- Cash-flow forecasting (Model 4) is available for USD and CAD at 7/30/90-day horizons, but it forecasts an **invoice-clearance proxy**: the source has no payment ledger, so partially settled invoices may differ from cash actually received. Daily values are derived estimates, and every forecast is a historical simulation against a 2020-03-13 data cutoff, not a live projection. Forecasting readiness is reported by `GET /api/v1/cash-flow/health` and is deliberately independent of the three-model readiness gate.
 - Some dashboard/source snapshot endpoints may show the supplied original dataset snapshot; invoice/customer list/detail and prediction persistence use the database.
 - Predictions are decision support, not guarantees.
 
