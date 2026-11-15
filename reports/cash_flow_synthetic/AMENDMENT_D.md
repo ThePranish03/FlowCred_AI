@@ -127,3 +127,34 @@ These are fixed by data scarcity rather than tuned:
 The `base` normaliser is held fixed at the value from the fit window for the
 whole horizon, so multi-step forecasts cannot drift through a moving
 denominator.
+
+## Pilot run and correction (recorded before the reported evaluation)
+
+The first implementation was **recursive**: each predicted week was appended to
+the history and the next week was forecast from it. On the USD series at origin
+30 the predicted ratio to the trailing mean compounded:
+
+```
+step 1   0.58
+step 2   2.96
+step 3   8.10
+step 4  30.35
+step 5 121.65     actual ratios stayed near 1.0
+```
+
+That produced WAPE values in the millions. **No verdict was recorded from that
+run** — it was an implementation defect, not a finding.
+
+Corrections, applied identically to both arms:
+
+1. **Direct multi-horizon instead of recursive feedback.** Every step is
+   predicted from the origin's fixed history plus the step index, so no
+   prediction can feed itself.
+2. **Bounded output.** The predicted ratio is clipped to `[0, 3]`. This is
+   symmetric between arms and documented rather than tuned.
+3. **Adaptation settings.** `learning_rate_init = 3e-4`, `max_iter = 200`.
+4. Pooling `steps` rows per training origin removes the early-origin starvation
+   described above: an origin that previously had 11 rows now has ≈140.
+
+This is a bug fix, not a change to the evaluation rule, the folds, the metrics
+or the decision threshold.
