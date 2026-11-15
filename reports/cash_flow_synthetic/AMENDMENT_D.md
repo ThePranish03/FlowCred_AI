@@ -113,3 +113,17 @@ its position unless D1 also beats it under the original rule.
 ```bash
 backend/.venv/bin/python backend/scripts/run_experiment_d.py
 ```
+
+## Implementation guards (registered before evaluation)
+
+These are fixed by data scarcity rather than tuned:
+
+| Condition | Behaviour |
+|---|---|
+| training rows < 3 | no fit; predict the trailing mean |
+| training rows < 10 | early stopping disabled and `max_iter` capped at 100, because a 20% split of ≤9 rows leaves nothing to monitor |
+| steps > 1 | recursive: the prediction is appended to the history and features are recomputed |
+
+The `base` normaliser is held fixed at the value from the fit window for the
+whole horizon, so multi-step forecasts cannot drift through a moving
+denominator.
