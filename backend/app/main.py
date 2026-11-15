@@ -26,7 +26,8 @@ from sqlalchemy.orm import Session
 
 from .auth import audit, hash_password, issue_pair, verify_password, current_user, allow_roles, ROLES
 from .database import Base, engine, get_db, SessionLocal
-from .db_models import User, RefreshToken, Prediction, Customer, Invoice, CustomerSegment, DatasetUpload, ModelRegistry
+from .db_models import User, RefreshToken, Prediction, Customer, Invoice, CustomerSegment, DatasetUpload, ModelRegistry, CashFlowForecastRun, CashFlowForecastPoint
+from . import forecasting
 
 _main_path = Path(__file__).resolve()
 ROOT = next((candidate for candidate in (_main_path.parents[2], _main_path.parents[1]) if (candidate / "frontend" / "public" / "demo-data").is_dir()), _main_path.parents[2])
@@ -150,6 +151,13 @@ def initialize_snapshot() -> None:
 async def lifespan(_: FastAPI):
     initialize_snapshot()
     load_models()
+    # Model 4 loads independently: a missing/broken cash-flow artifact must not
+    # affect MODEL_STATUS or the three-model health gate.
+    try:
+        forecasting.load_forecast_models()
+        LOGGER.info("Cash-flow forecasting status: %s", forecasting.forecast_status()["status"])
+    except Exception as exc:  # pragma: no cover - defensive
+        LOGGER.warning("Cash-flow forecast loader failed: %s: %s", type(exc).__name__, exc)
     if os.getenv("APP_ENV", "development").lower() != "production":
         Base.metadata.create_all(bind=engine)
     with engine.connect() as connection:
@@ -382,6 +390,113 @@ def health(db: Session = Depends(get_db)):
     status_value = "ok" if models_ready and database["status"] == "available" else "degraded"
     payload = {"status": status_value, "mode": "live", "apiVersion": "v1", "database": database, "models": models, "timestamp": datetime.now(timezone.utc).isoformat()}
     return payload if status_value == "ok" else JSONResponse(status_code=503, content=payload)
+
+
+# =====
+# Model 4 — cash-flow forecasting
+# =====
+class CashFlowRunInput(BaseModel):
+    currency: str = Field(default="USD")
+    horizon: int = Field(default=30)
+    asOf: str | None = None
+
+
+def _forecast_params(currency: str, horizon: int, as_of: str | None) -> tuple[str, int, str | None]:
+    ccy = (currency or "").strip().upper()
+    if ccy not in forecasting.CURRENCIES:
+        raise HTTPException(422, f"currency must be one of {list(forecasting.CURRENCIES)}")
+    if horizon not in forecasting.HORIZONS:
+        raise HTTPException(422, f"horizon must be one of {list(forecasting.HORIZONS)}")
+    return ccy, int(horizon), (as_of or None)
+
+
+@app.get("/api/v1/cash-flow/health")
+def cash_flow_health():
+    """Forecast-only readiness. Independent of the three-model health gate."""
+    status = forecasting.forecast_status()
+    payload = {"apiVersion": "v1", **status, "timestamp": datetime.now(timezone.utc).isoformat()}
+    if status["status"] != "available":
+        return JSONResponse(status_code=503, content=payload)
+    return payload
+
+
+@app.get("/api/v1/cash-flow/forecast", dependencies=[Depends(allow_roles(*ROLES))])
+def cash_flow_forecast(
+    currency: str = Query("USD"),
+    horizon: int = Query(30),
+    asOf: str | None = Query(None),
+):
+    """Pure read: generates a forecast from stored artifacts and writes nothing."""
+    ccy, h, as_of = _forecast_params(currency, horizon, asOf)
+    try:
+        return forecasting.build_forecast_payload(ccy, h, as_of)
+    except forecasting.ForecastUnavailable as exc:
+        raise HTTPException(503, f"cash-flow model pipeline unavailable: {exc}") from exc
+    except forecasting.ForecastError as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+
+@app.get("/api/v1/cash-flow/runs", dependencies=[Depends(allow_roles(*ROLES))])
+def list_cash_flow_runs(currency: str | None = Query(None), limit: int = Query(20, ge=1, le=100), db: Session = Depends(get_db)):
+    query = select(CashFlowForecastRun).order_by(CashFlowForecastRun.created_at.desc()).limit(limit)
+    if currency:
+        query = query.where(CashFlowForecastRun.currency == currency.strip().upper())
+    runs = db.scalars(query).all()
+    return {
+        "items": [
+            {
+                "runId": run.id,
+                "currency": run.currency,
+                "asOf": str(run.as_of),
+                "horizonDays": run.horizon_days,
+                "modelId": run.model_id,
+                "modelVersion": run.model_version,
+                "status": run.status,
+                "totals": run.metrics_json,
+                "createdAt": run.created_at.isoformat() if run.created_at else None,
+            }
+            for run in runs
+        ]
+    }
+
+
+@app.post("/api/v1/cash-flow/runs", dependencies=[Depends(allow_roles("admin", "business_owner"))])
+def create_cash_flow_run(payload: CashFlowRunInput, db: Session = Depends(get_db), user: User = Depends(current_user)):
+    ccy, horizon, as_of = _forecast_params(payload.currency, payload.horizon, payload.asOf)
+    try:
+        data = forecasting.build_forecast_payload(ccy, horizon, as_of)
+    except forecasting.ForecastUnavailable as exc:
+        raise HTTPException(503, f"cash-flow model pipeline unavailable: {exc}") from exc
+    except forecasting.ForecastError as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+    run = CashFlowForecastRun(
+        id=str(uuid4()),
+        as_of=date.fromisoformat(data["asOf"]),
+        horizon_days=horizon,
+        currency=ccy,
+        model_id=data["model"]["id"],
+        model_version=data["model"]["version"],
+        status="generated",
+        metrics_json=data["totals"],
+        assumptions_json={"assumptions": data["assumptions"], "disclaimer": data["disclaimer"], "model": data["model"]},
+        created_by=user.id,
+    )
+    db.add(run)
+    for week in data["weekly"]:
+        db.add(CashFlowForecastPoint(
+            run_id=run.id, granularity="weekly", point_date=date.fromisoformat(week["weekStart"]),
+            predicted=week["predicted"], lower=week["lower"], upper=week["upper"],
+        ))
+    for day in data["daily"]:
+        db.add(CashFlowForecastPoint(
+            run_id=run.id, granularity="daily", point_date=date.fromisoformat(day["date"]),
+            predicted=day["estimated"], lower=day["lower"], upper=day["upper"],
+        ))
+    audit(db, user, "prediction.cash-flow", "cash_flow_run", run.id)
+    db.commit()
+    LOGGER.info("Cash-flow forecast run persisted: %s %s %sd", ccy, data["asOf"], horizon)
+    return {"runId": run.id, "createdAt": datetime.now(timezone.utc).isoformat(), "forecast": data}
 
 
 @app.get("/api/v1/dashboard/summary", dependencies=[Depends(allow_roles(*ROLES))])
