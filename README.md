@@ -2,7 +2,7 @@
 
 <p align="center">
   <strong>Explainable Accounts Receivable Intelligence System</strong><br/>
-  Predict late-payment risk · Estimate payment delays · Discover customer payment behaviour
+  Predict late-payment risk · Estimate payment delays · Discover customer payment behaviour · Forecast weekly cash flow
 </p>
 
 <p align="center">
@@ -17,13 +17,14 @@
 
 ## Overview
 
-**FlowCred AI** is an accounts-receivable intelligence application that uses historical invoice and payment information to help businesses understand payment risk and customer behaviour. It combines three trained machine-learning models with a web dashboard, REST API, authentication, database persistence, and CSV ingestion.
+**FlowCred AI** is an accounts-receivable intelligence application that uses historical invoice and payment information to help businesses understand payment risk, customer behaviour and expected cash inflow. It combines four trained machine-learning models with a web dashboard, REST API, authentication, database persistence, and CSV ingestion.
 
 | Capability | Business question | Model |
 |---|---|---|
 | Late-payment classification | How likely is this invoice to be paid late? | XGBoost Classifier |
 | Payment-delay regression | How many days early or late might payment occur relative to the due date? | HistGradientBoosting Regressor |
 | Customer behaviour clustering | Which payment-behaviour segment does this customer resemble? | K-Means (6 clusters) |
+| Cash-flow forecasting | How much will be collected over the next 7, 30 or 90 days, per currency? | XGBoost (USD) and ARIMA (CAD) |
 
 FlowCred AI is a decision-support system. Predictions should be reviewed alongside business context and should not be the sole basis for consequential financial decisions.
 
@@ -37,15 +38,16 @@ FlowCred AI is a decision-support system. Predictions should be reviewed alongsi
 - JWT authentication, token refresh/rotation, logout, and role-based API authorization.
 - CSV validation and persistence of accepted invoice records.
 - Prediction history and model metadata.
+- Weekly cash-flow forecasts per currency for 7-, 30- and 90-day horizons, with backtest bands and a model-comparison table.
 - PostgreSQL persistence with Alembic migrations.
 - Nginx serves the frontend and proxies API requests to FastAPI.
-- Strict readiness check: database and all three model pipelines must be available.
+- Strict readiness check: database and all three invoice-level model pipelines must be available. Cash-flow forecasting reports readiness separately and cannot degrade this gate.
 
 > **Scope note:** Cash-inflow forecasting is available as a weekly, per-currency model (USD and CAD separately). Its target is an **invoice-clearance proxy**, not verified bank receipts, and forecasts are historical simulations bounded by the dataset's 2020-03-13 cutoff. See `documents/cash_flow_forecasting.md`.
 
 ## Architecture
 
-\`\`\`text
+```text
                  Browser
                     |
                     v
@@ -67,7 +69,7 @@ FlowCred AI is a decision-support system. Predictions should be reviewed alongsi
                    |
                    v
              Persistent volume
-\`\`\`
+```
 
 ### Technology stack
 
@@ -78,7 +80,7 @@ FlowCred AI is a decision-support system. Predictions should be reviewed alongsi
 | Database | PostgreSQL 17 in Docker; SQLite for local backend development |
 | ORM / migrations | SQLAlchemy 2, Alembic |
 | Authentication | JWT, PBKDF2-HMAC-SHA256 password hashing, refresh-token rotation |
-| Machine learning | XGBoost, scikit-learn, NumPy, Pandas, SciPy, Joblib |
+| Machine learning | XGBoost, statsmodels, scikit-learn, NumPy, Pandas, SciPy, Joblib |
 | Infrastructure | Docker, Docker Compose, Nginx |
 
 ---
@@ -100,92 +102,92 @@ There are two ways to run the application:
 
 Check Docker:
 
-\`\`\`powershell
+```powershell
 docker --version
 docker compose version
 docker info
-\`\`\`
+```
 
 ### Step 1. Clone the repository
 
-\`\`\`powershell
+```powershell
 git clone https://github.com/ThePranish03/FlowCred_AI.git
 cd FlowCred_AI
-\`\`\`
+```
 
 ### Step 2. Create the environment file
 
-The Compose file is in \`backend/docker-compose.yml\`; its environment file is \`backend/.env\`.
+The Compose file is in `backend/docker-compose.yml`; its environment file is `backend/.env`.
 
 Windows PowerShell:
 
-\`\`\`powershell
+```powershell
 Copy-Item backend/.env.example backend/.env
 notepad backend/.env
-\`\`\`
+```
 
 macOS/Linux:
 
-\`\`\`bash
+```bash
 cp backend/.env.example backend/.env
-\`\`\`
+```
 
-Set these values in \`backend/.env\`:
+Set these values in `backend/.env`:
 
-\`\`\`env
+```env
 APP_ENV=production
 JWT_SECRET_KEY=REPLACE_WITH_A_UNIQUE_RANDOM_SECRET
 POSTGRES_PASSWORD=REPLACE_WITH_A_LONG_ALPHANUMERIC_PASSWORD
 FRONTEND_PORT=8080
-\`\`\`
+```
 
 Generate a cryptographically random JWT key:
 
 Windows:
 
-\`\`\`powershell
+```powershell
 python -c "import secrets; print(secrets.token_urlsafe(48))"
-\`\`\`
+```
 
 macOS/Linux:
 
-\`\`\`bash
+```bash
 python3 -c "import secrets; print(secrets.token_urlsafe(48))"
-\`\`\`
+```
 
-Copy the generated value into \`JWT_SECRET_KEY\`. Use a different strong password for PostgreSQL. For the current Compose URL interpolation, use an alphanumeric database password unless you correctly URL-encode reserved characters.
+Copy the generated value into `JWT_SECRET_KEY`. Use a different strong password for PostgreSQL. For the current Compose URL interpolation, use an alphanumeric database password unless you correctly URL-encode reserved characters.
 
-**Never commit \`backend/.env\` or share its secrets.** The repository ignores local environment files.
+**Never commit `backend/.env` or share its secrets.** The repository ignores local environment files.
 
 ### Step 3. Validate Docker Compose
 
 Run this from the repository root:
 
-\`\`\`powershell
+```powershell
 docker compose --env-file backend/.env -f backend/docker-compose.yml config
-\`\`\`
+```
 
 Resolve any missing environment variable or YAML error before continuing.
 
 ### Step 4. Build and start the application
 
-\`\`\`powershell
+```powershell
 docker compose --env-file backend/.env -f backend/docker-compose.yml up --build -d
-\`\`\`
+```
 
 This builds the frontend and backend images and starts all services:
 
 - **db:** PostgreSQL 17.
 - **api:** FastAPI. Waits for PostgreSQL health, applies Alembic migrations, loads and validates the existing ML models, then starts Uvicorn.
-- **frontend:** React production build served by Nginx. Waits for API health and proxies \`/api/\` requests to the backend.
+- **frontend:** React production build served by Nginx. Waits for API health and proxies `/api/` requests to the backend.
 
 ### Step 5. Verify the services
 
-\`\`\`powershell
+```powershell
 docker compose --env-file backend/.env -f backend/docker-compose.yml ps
-\`\`\`
+```
 
-Wait for all three services to report \`healthy\`.
+Wait for all three services to report `healthy`.
 
 Typical containers:
 
@@ -197,10 +199,10 @@ Typical containers:
 
 The first API start can take longer while the models load. Inspect logs:
 
-\`\`\`powershell
+```powershell
 docker compose --env-file backend/.env -f backend/docker-compose.yml logs --tail=150 api
 docker compose --env-file backend/.env -f backend/docker-compose.yml logs --tail=100 frontend
-\`\`\`
+```
 
 The API health check returns healthy only when PostgreSQL and all three ML model pipelines are available.
 
@@ -210,31 +212,31 @@ Open the frontend:
 
 **http://localhost:8080**
 
-The frontend is published to the Windows host on port 8080 by default. Change \`FRONTEND_PORT\` in \`backend/.env\` to use another port.
+The frontend is published to the Windows host on port 8080 by default. Change `FRONTEND_PORT` in `backend/.env` to use another port.
 
 The API port 8000 is intentionally **not published to the host** in the default Compose setup. Nginx forwards frontend API calls over the internal Docker network.
 
 ### Optional: expose FastAPI directly on localhost:8000
 
-For local debugging or direct Swagger access, edit \`backend/docker-compose.yml\` and add this under the \`api:\` service:
+For local debugging or direct Swagger access, edit `backend/docker-compose.yml` and add this under the `api:` service:
 
-\`\`\`yaml
+```yaml
     ports:
       - "8000:8000"
-\`\`\`
+```
 
-Keep the indentation aligned with the other \`api\` properties. Then recreate the API:
+Keep the indentation aligned with the other `api` properties. Then recreate the API:
 
-\`\`\`powershell
+```powershell
 docker compose --env-file backend/.env -f backend/docker-compose.yml up -d --force-recreate api
-\`\`\`
+```
 
 You can then open:
 
 - API health: http://localhost:8000/api/v1/health
 - Swagger UI: http://localhost:8000/docs
 
-Without that optional port mapping, do not expect \`http://localhost:8000\` to respond from Windows. The frontend at port 8080 still communicates with the API internally.
+Without that optional port mapping, do not expect `http://localhost:8000` to respond from Windows. The frontend at port 8080 still communicates with the API internally.
 
 ---
 
@@ -253,11 +255,11 @@ Python 3.14 is currently required because the recovered model helper is preserve
 
 Check versions:
 
-\`\`\`powershell
+```powershell
 python --version
 node --version
 npm --version
-\`\`\`
+```
 
 ### A. Backend setup
 
@@ -265,35 +267,35 @@ Run from the repository root.
 
 **1. Create and activate a virtual environment**
 
-\`\`\`powershell
+```powershell
 py -3.14 -m venv backend/.venv
-.\\backend\\.venv\\Scripts\\Activate.ps1
-\`\`\`
+.\backend\.venv\Scripts\Activate.ps1
+```
 
 If PowerShell blocks activation:
 
-\`\`\`powershell
+```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.\\backend\\.venv\\Scripts\\Activate.ps1
-\`\`\`
+.\backend\.venv\Scripts\Activate.ps1
+```
 
 **2. Install backend dependencies**
 
-\`\`\`powershell
+```powershell
 python -m pip install --upgrade pip
 python -m pip install -r backend/requirements.txt
-\`\`\`
+```
 
 **3. Configure the backend**
 
-\`\`\`powershell
+```powershell
 Copy-Item backend/.env.example backend/.env
 notepad backend/.env
-\`\`\`
+```
 
 For local SQLite development, use:
 
-\`\`\`env
+```env
 APP_ENV=development
 DEBUG=true
 DATABASE_URL=sqlite:///./flowcred.db
@@ -301,23 +303,23 @@ JWT_SECRET_KEY=use_a_unique_local_secret_at_least_32_characters_long
 MODEL_DIR=../models
 DATA_DIR=../data
 CORS_ORIGINS=http://localhost:5173
-\`\`\`
+```
 
-Keep this file in the \`backend\` directory. Do not use these development settings for a public production deployment.
+Keep this file in the `backend` directory. Do not use these development settings for a public production deployment.
 
 **4. Apply database migrations**
 
 From the repository root:
 
-\`\`\`powershell
+```powershell
 python -m alembic -c backend/alembic.ini upgrade head
-\`\`\`
+```
 
 **5. Start FastAPI**
 
-\`\`\`powershell
+```powershell
 python -m uvicorn app.main:app --app-dir backend --reload --host 127.0.0.1 --port 8000
-\`\`\`
+```
 
 Keep this terminal open. The backend will be available at:
 
@@ -330,79 +332,79 @@ Open a **second terminal** at the repository root.
 
 **1. Install frontend dependencies**
 
-\`\`\`powershell
+```powershell
 cd frontend
 npm ci
-\`\`\`
+```
 
 **2. Configure live API mode**
 
-Create \`frontend/.env.local\` containing:
+Create `frontend/.env.local` containing:
 
-\`\`\`env
+```env
 VITE_API_MODE=live
 VITE_API_BASE_URL=http://localhost:8000/api/v1
-\`\`\`
+```
 
 **3. Start Vite**
 
-\`\`\`powershell
+```powershell
 npm run dev
-\`\`\`
+```
 
 Open:
 
 **http://localhost:5173**
 
-The backend's \`CORS_ORIGINS\` must include \`http://localhost:5173\`. Restart the backend after changing its environment file.
+The backend's `CORS_ORIGINS` must include `http://localhost:5173`. Restart the backend after changing its environment file.
 
 ### Useful development commands
 
 Frontend build and type-check:
 
-\`\`\`powershell
+```powershell
 cd frontend
 npm run build
-\`\`\`
+```
 
 Frontend lint:
 
-\`\`\`powershell
+```powershell
 npm run lint
-\`\`\`
+```
 
 Backend tests (from repository root):
 
-\`\`\`powershell
+```powershell
 python -m pytest backend/tests
-\`\`\`
+```
 
 ---
 
 ## First login and roles
 
-The backend supports registration and login. Public registrations are assigned the accountant role. The configured \`BOOTSTRAP_ADMIN_EMAIL\` can receive the initial admin role when the database is empty and the first registered email matches that setting.
+The backend supports registration and login. Public registrations are assigned the accountant role. The configured `BOOTSTRAP_ADMIN_EMAIL` can receive the initial admin role when the database is empty and the first registered email matches that setting.
 
 To bootstrap the initial admin:
 
-1. Set \`BOOTSTRAP_ADMIN_EMAIL\` in \`backend/.env\` to the email you intend to register.
+1. Set `BOOTSTRAP_ADMIN_EMAIL` in `backend/.env` to the email you intend to register.
 2. Start with an empty database.
 3. Register that email as the first user.
 4. Log in with the registered credentials.
 
-Changing \`BOOTSTRAP_ADMIN_EMAIL\` does not automatically promote an existing account. Keep credentials private. The current application uses a shared workspace; organization-level tenant isolation is not implemented.
+Changing `BOOTSTRAP_ADMIN_EMAIL` does not automatically promote an existing account. Keep credentials private. The current application uses a shared workspace; organization-level tenant isolation is not implemented.
 
 ---
 
 ## Machine-learning models
 
-The API loads saved model artifacts from \`models/\`; it does not retrain them during normal application startup.
+The API loads saved model artifacts from `models/`; it does not retrain them during normal application startup.
 
 ### 1. Late-payment classification
 
 - Algorithm: XGBoost Classifier.
 - Output: late-payment probability and operational risk band.
-- Artifacts: \`late_payment_classifier.joblib\`, \`late_payment_feature_pipeline.joblib\`, and \`late_payment_model_metadata.json\`.
+- Artifacts: `late_payment_classifier.joblib`, `late_payment_feature_pipeline.joblib`, and `late_payment_model_metadata.json`.
 - Operational threshold: **0.45**. The classification threshold is separate from the risk-band cutoffs.
 
 | Metric | Test result |
@@ -418,7 +420,7 @@ The API loads saved model artifacts from \`models/\`; it does not retrain them d
 
 - Algorithm: HistGradientBoosting Regressor.
 - Output: signed delay in days relative to the due date.
-- Artifacts: \`payment_delay_regressor.joblib\`, \`payment_delay_feature_pipeline.joblib\`, and \`payment_delay_model_metadata.json\`.
+- Artifacts: `payment_delay_regressor.joblib`, `payment_delay_feature_pipeline.joblib`, and `payment_delay_model_metadata.json`.
 
 | Metric | Test result |
 |---|---:|
@@ -433,7 +435,7 @@ Interpretation: negative = early, zero = on time, positive = late.
 
 - Algorithm: K-Means with six clusters.
 - Evaluation population: 1,425 customers.
-- Artifacts: \`customer_behavior_clusterer.joblib\`, \`customer_behavior_feature_pipeline.joblib\`, and \`customer_behavior_clustering_metadata.json\`.
+- Artifacts: `customer_behavior_clusterer.joblib`, `customer_behavior_feature_pipeline.joblib`, and `customer_behavior_clustering_metadata.json`.
 
 | Metric | Value |
 |---|---:|
@@ -444,9 +446,41 @@ Interpretation: negative = early, zero = on time, positive = late.
 
 Cluster sizes are highly imbalanced. Cluster IDs are labels, not an ordered risk scale.
 
+### 4. Cash-flow forecasting
+
+The fourth model forecasts **aggregate weekly collections per currency**, not individual invoices. USD and CAD are modelled independently with no FX conversion; weekly totals are authoritative and daily values are derived estimates.
+
+- Frequency: weekly (Monday-start weeks). 61 fully bounded weeks, 2019-01-07 → 2020-03-02.
+- Horizons: exactly **7, 30 and 90 days**, starting the day after the forecast origin.
+- Target: an **invoice-clearance proxy** — `SUM(invoice_amount)` of paid invoices by `payment_date`. The dataset has no payment ledger and no amount-received column, so partially settled invoices may differ from cash actually received.
+- Selection rule, declared before scoring: beat the best valid baseline by **≥ 10% relative WAPE** on the weekly path and win on **≥ 4 validation origins**; otherwise the baseline ships. Selected separately per currency.
+
+| Currency | Selected model | Validation WAPE | Best baseline | Improvement |
+|---|---|---:|---|---:|
+| USD | XGBoost (daily features → weekly) | 0.1219 | seasonal-naive 0.1774 | **31.3%** |
+| CAD | ARIMA (weekly) | 0.2992 | seasonal-naive 0.3555 | **15.8%** |
+
+All six candidates were compared on identical chronological, expanding-origin folds (26 validation origins, 12 untouched holdout origins). Evaluation uses MAE, RMSE and WAPE; **MAPE is never used** because zero-collection weeks exist.
+
+- Artifacts: `cash_flow_forecaster_usd.joblib`, `cash_flow_forecaster_cad.joblib`, and `cash_flow_model_metadata.json`.
+- Each artifact is self-contained: history, weekday shares, fitted estimator and a frozen replay grid for every historical origin, so serving never retrains.
+
+A notable negative result is documented rather than hidden: the due-date schedule baseline is extremely strong one to two weeks ahead (6–7% WAPE on USD) and collapses from about week three, because invoices are issued only ~15 days before they fall due. The exploratory 6.4%/19.3% figures were partly hindsight.
+
+Because the dataset ends on 2020-03-13, every published forecast is a **historical simulation**, not a live projection. Full methodology, including limitations and the early-2020 structural break, is in [`documents/cash_flow_forecasting.md`](documents/cash_flow_forecasting.md); the pre-registered contract is in [`reports/cash_flow/DECISIONS.md`](reports/cash_flow/DECISIONS.md).
+
+To rebuild Model 4 from the source data:
+
+```bash
+backend/.venv/bin/python backend/scripts/build_cash_flow_dataset.py   # target → daily/weekly CSVs
+backend/.venv/bin/python backend/scripts/train_cash_flow_models.py     # backtest + artifacts
+backend/.venv/bin/python backend/scripts/make_cashflow_plots.py        # report figures
+backend/.venv/bin/python backend/scripts/export_cashflow_demo.py       # demo fixture
+```
+
 ### Model compatibility note
 
-The original \`feature_engineering_utils\` implementation was recovered as CPython 3.14 bytecode and is preserved in \`backend/vendor/\`. The backend loader imports that explicit vendor path, verifies the bytecode magic, and preserves historical module/class references required by the serialized model artifacts. This is why the project currently targets **CPython 3.14**.
+The original `feature_engineering_utils` implementation was recovered as CPython 3.14 bytecode and is preserved in `backend/vendor/`. The backend loader imports that explicit vendor path, verifies the bytecode magic, and preserves historical module/class references required by the serialized model artifacts. This is why the project currently targets **CPython 3.14**.
 
 Do not delete, regenerate, or replace the vendor bytecode or loader without revalidating all saved model artifacts and inference outputs.
 
@@ -454,12 +488,13 @@ Do not delete, regenerate, or replace the vendor bytecode or loader without reva
 
 ## Project structure
 
-\`\`\`text
+```text
 FlowCred_AI/
 ├── architectures/                 # Architecture diagrams
 ├── backend/
-│   ├── app/                        # FastAPI, authentication, DB, ML inference
-│   ├── migrations/                 # Alembic migration scripts
+│   ├── app/                        # FastAPI, authentication, DB, ML inference, forecasting
+│   ├── migrations/                 # Alembic migration scripts (0001–0003)
+│   ├── scripts/                    # Offline Model 4 pipeline (target, candidates, training)
 │   ├── tests/                      # Backend tests
 │   ├── vendor/                     # Recovered CPython 3.14 helper bytecode
 │   ├── Dockerfile
@@ -470,9 +505,10 @@ FlowCred_AI/
 │   └── README.md                   # Backend-specific guide
 ├── data/
 │   ├── raw/
-│   └── processed/                  # Cleaned source and customer features
+│   └── processed/                  # Cleaned source, customer features, cash-flow series
+├── documents/                      # Model documentation (Model 4 methodology)
 ├── frontend/
-│   ├── public/demo-data/           # Dashboard source snapshots
+│   ├── public/demo-data/           # Dashboard source snapshots and the cash-flow fixture
 │   ├── src/
 │   │   ├── api/
 │   │   ├── components/
@@ -485,26 +521,30 @@ FlowCred_AI/
 ├── models/                          # Saved estimators, pipelines, metadata
 ├── notebooks/                       # ML development workflow
 ├── reports/                         # Evaluation reports
+│   └── cash_flow/                  # Comparison, folds, metrics, plots, DECISIONS.md
 ├── requirements.txt                 # Notebook/research dependencies
 └── README.md
-\`\`\`
+```
 
 ## API overview
 
-The REST API is versioned under \`/api/v1\`. Use FastAPI's Swagger documentation at \`/docs\` when the API port is reachable for exact payload schemas and response formats.
+The REST API is versioned under `/api/v1`. Use FastAPI's Swagger documentation at `/docs` when the API port is reachable for exact payload schemas and response formats.
 
 | Area | Endpoint examples | Purpose |
 |---|---|---|
-| Health | \`GET /api/v1/health\` | Database and model readiness |
-| Authentication | \`POST /api/v1/auth/register\`, \`/login\`, \`/refresh\`, \`/logout\` | Account and token lifecycle |
-| Current user | \`GET /api/v1/auth/me\` | Current authenticated profile |
-| Dashboard | \`GET /api/v1/dashboard/summary\` | Dashboard summary |
-| Invoices | \`GET /api/v1/invoices\`, \`GET /api/v1/invoices/{invoice_id}\` | Invoice list and detail |
-| Customers | \`GET /api/v1/customers\`, \`GET /api/v1/customers/{customer_id}\` | Customer list and detail |
-| Segments | \`GET /api/v1/customers/segments\` | Customer clustering |
-| Predictions | \`POST /api/v1/invoices/predict/late-payment\`, \`POST /api/v1/invoices/predict/payment-delay\` | Invoice inference |
-| Upload | \`POST /api/v1/datasets/upload\` | CSV validation and persistence |
-| Metrics and insights | \`GET /api/v1/models/metrics\`, \`GET /api/v1/insights\` | Model metrics and insights |
+| Health | `GET /api/v1/health` | Database and model readiness |
+| Authentication | `POST /api/v1/auth/register`, `/login`, `/refresh`, `/logout` | Account and token lifecycle |
+| Current user | `GET /api/v1/auth/me` | Current authenticated profile |
+| Dashboard | `GET /api/v1/dashboard/summary` | Dashboard summary |
+| Invoices | `GET /api/v1/invoices`, `GET /api/v1/invoices/{invoice_id}` | Invoice list and detail |
+| Customers | `GET /api/v1/customers`, `GET /api/v1/customers/{customer_id}` | Customer list and detail |
+| Segments | `GET /api/v1/customers/segments` | Customer clustering |
+| Predictions | `POST /api/v1/invoices/predict/late-payment`, `POST /api/v1/invoices/predict/payment-delay` | Invoice inference |
+| Cash-flow forecast | `GET /api/v1/cash-flow/forecast?currency=&horizon=&asOf=` | Weekly forecast path, derived daily estimates, backtest comparison |
+| Cash-flow health | `GET /api/v1/cash-flow/health` | Forecast-only readiness, independent of the three-model gate |
+| Cash-flow runs | `GET/POST /api/v1/cash-flow/runs` | Persisted forecast history (POST: admin/business_owner, audited) |
+| Upload | `POST /api/v1/datasets/upload` | CSV validation and persistence |
+| Metrics and insights | `GET /api/v1/models/metrics`, `GET /api/v1/insights` | Model metrics and insights |
 
 Authenticated API calls use a bearer access token.
 
@@ -512,17 +552,17 @@ Authenticated API calls use a bearer access token.
 
 The frontend's documented required CSV columns are:
 
-- \`invoice_id\`
-- \`customer_id\`
-- \`name_customer\`
-- \`invoice_amount\`
-- \`invoice_date\`
-- \`due_date\`
-- \`invoice_currency\`
-- \`cust_payment_terms\`
-- \`invoice_status\`
+- `invoice_id`
+- `customer_id`
+- `name_customer`
+- `invoice_amount`
+- `invoice_date`
+- `due_date`
+- `invoice_currency`
+- `cust_payment_terms`
+- `invoice_status`
 
-Optional source fields include \`payment_date\`, \`delay_days\`, \`is_late\`, \`business_code\`, \`doc_id\`, \`document_create_date\`, and \`posting_id\`.
+Optional source fields include `payment_date`, `delay_days`, `is_late`, `business_code`, `doc_id`, `document_create_date`, and `posting_id`.
 
 The server performs its own validation, including duplicate invoice ID checks. Review the upload response for accepted and rejected records. Currency values are preserved: do not combine USD and CAD amounts without explicit FX conversion.
 
@@ -530,33 +570,37 @@ The server performs its own validation, including duplicate invoice ID checks. R
 
 Backend tests:
 
-\`\`\`powershell
+```powershell
 python -m pytest backend/tests
-\`\`\`
+```
 
-Artifact verification (if \`backend/verify_artifacts.py\` is present in your checkout):
+The suite covers the three invoice-level models, the API and database schema, and Model 4's target construction, weekly aggregation, chronological folds, leakage guards, daily-allocation identity (`sum(daily) == horizon total`), interval ordering, and role/audit behaviour. It also asserts that a missing cash-flow artifact leaves `/api/v1/health` at 200.
 
-\`\`\`powershell
+Artifact verification (if `backend/verify_artifacts.py` is present in your checkout):
+
+```powershell
 python backend/verify_artifacts.py
-\`\`\`
+```
+
+This reloads the saved artifacts and reproduces recorded outputs for all four models, including the cash-flow contract (`Σ daily == horizon total` within 0.01, ordered intervals, selected algorithm matching metadata).
 
 Frontend production build:
 
-\`\`\`powershell
+```powershell
 cd frontend
 npm ci
 npm run build
-\`\`\`
+```
 
 Docker inspection, from the repository root:
 
-\`\`\`powershell
+```powershell
 docker compose --env-file backend/.env -f backend/docker-compose.yml config
 docker compose --env-file backend/.env -f backend/docker-compose.yml ps
 docker compose --env-file backend/.env -f backend/docker-compose.yml logs --tail=150 api
-\`\`\`
+```
 
-A successful image build alone does not prove deployment acceptance. Confirm all services are healthy, PostgreSQL migrations completed, all three models loaded in the running container, and browser workflows (login, upload, inference, and persisted retrieval) work end to end.
+A successful image build alone does not prove deployment acceptance. Confirm all services are healthy, PostgreSQL migrations completed, the three invoice-level models loaded, `GET /api/v1/cash-flow/health` reports `available`, and browser workflows (login, upload, inference, forecast, and persisted retrieval) work end to end.
 
 ## Troubleshooting
 
@@ -564,62 +608,62 @@ A successful image build alone does not prove deployment acceptance. Confirm all
 
 Start Docker Desktop, wait for the Linux engine, then run:
 
-\`\`\`powershell
+```powershell
 docker info
-\`\`\`
+```
 
 ### Backend is unhealthy
 
 Inspect the backend logs:
 
-\`\`\`powershell
+```powershell
 docker compose --env-file backend/.env -f backend/docker-compose.yml logs --tail=200 api
 docker compose --env-file backend/.env -f backend/docker-compose.yml ps
-\`\`\`
+```
 
 Production readiness requires PostgreSQL and all three model pipelines. HTTP 503 means a required dependency is unavailable; fix the root cause rather than weakening the health check.
 
 ### JWT secret validation fails
 
-Set a unique random \`JWT_SECRET_KEY\` of at least 32 characters in \`backend/.env\`, then recreate the API:
+Set a unique random `JWT_SECRET_KEY` of at least 32 characters in `backend/.env`, then recreate the API:
 
-\`\`\`powershell
+```powershell
 docker compose --env-file backend/.env -f backend/docker-compose.yml up -d --force-recreate api
-\`\`\`
+```
 
 ### localhost:8000 is unreachable
 
-The default Compose file does not publish API port 8000. Open the frontend at \`http://localhost:8080\`. Add the optional \`8000:8000\` mapping under the API service if direct host access is required.
+The default Compose file does not publish API port 8000. Open the frontend at `http://localhost:8080`. Add the optional `8000:8000` mapping under the API service if direct host access is required.
 
 ### Model helper or model loading fails
 
-Keep Python 3.14 and the exact recovered bytecode under \`backend/vendor/\`. Inspect API logs. Do not delete the recovered bytecode, rewrite its historical class, retrain the saved models, or bypass readiness without validating artifact compatibility.
+Keep Python 3.14 and the exact recovered bytecode under `backend/vendor/`. Inspect API logs. Do not delete the recovered bytecode, rewrite its historical class, retrain the saved models, or bypass readiness without validating artifact compatibility.
 
 ### Port 8080 is already occupied
 
-Set another free host port in \`backend/.env\`, for example:
+Set another free host port in `backend/.env`, for example:
 
-\`\`\`env
+```env
 FRONTEND_PORT=8081
-\`\`\`
+```
 
-Recreate the frontend and open \`http://localhost:8081\`.
+Recreate the frontend and open `http://localhost:8081`.
 
 ### Restart or stop the stack
 
 Restart:
 
-\`\`\`powershell
+```powershell
 docker compose --env-file backend/.env -f backend/docker-compose.yml restart
-\`\`\`
+```
 
 Stop containers (named volumes are preserved):
 
-\`\`\`powershell
+```powershell
 docker compose --env-file backend/.env -f backend/docker-compose.yml down
-\`\`\`
+```
 
-**Do not use \`docker compose down -v\` unless you intentionally want to delete PostgreSQL and upload volumes.** It can remove persisted application data.
+**Do not use `docker compose down -v` unless you intentionally want to delete PostgreSQL and upload volumes.** It can remove persisted application data.
 
 ## ML notebook workflow
 
@@ -627,29 +671,30 @@ The notebooks document the research and model-development process:
 
 | Order | Notebook | Purpose |
 |---|---|---|
-| 1 | \`01_data_preprocessing.ipynb\` | Clean and prepare the source dataset |
-| 1.5 | \`1.5_data_quality_validation.ipynb\` | Validate data quality |
-| 2 | \`02_late_payment_feature_engineering.ipynb\` | Build classifier features |
-| 3 | \`03_late_payment_classification.ipynb\` | Train and evaluate late-payment model |
-| 4 | \`04_payment_delay_feature_engineering.ipynb\` | Build delay-regression features |
-| 5 | \`05_payment_delay_regression_training.ipynb\` | Train and evaluate delay model |
-| 6 | \`06_customer_behavior_feature_engineering.ipynb\` | Build customer-level features |
-| 7 | \`07_customer_behavior_clustering.ipynb\` | Train and evaluate customer segments |
+| 1 | `01_data_preprocessing.ipynb` | Clean and prepare the source dataset |
+| 1.5 | `1.5_data_quality_validation.ipynb` | Validate data quality |
+| 2 | `02_late_payment_feature_engineering.ipynb` | Build classifier features |
+| 3 | `03_late_payment_classification.ipynb` | Train and evaluate late-payment model |
+| 4 | `04_payment_delay_feature_engineering.ipynb` | Build delay-regression features |
+| 5 | `05_payment_delay_regression_training.ipynb` | Train and evaluate delay model |
+| 6 | `06_customer_behavior_feature_engineering.ipynb` | Build customer-level features |
+| 7 | `07_customer_behavior_clustering.ipynb` | Train and evaluate customer segments |
+| 8 | `08_cash_flow_forecasting.ipynb` | Cash-flow target, folds, baselines and forecast contract |
 
 To run the root research workflow:
 
-\`\`\`powershell
+```powershell
 python -m venv .venv
-.\\.venv\\Scripts\\Activate.ps1
+.\.venv\Scripts\Activate.ps1
 python -m pip install -r requirements.txt
 jupyter notebook
-\`\`\`
+```
 
 Model research/training is separate from starting the web application. The deployed API loads the saved artifacts.
 
 ## Security and known limitations
 
-- Use strong unique JWT and database secrets; keep \`.env\` out of version control.
+- Use strong unique JWT and database secrets; keep `.env` out of version control.
 - Configure HTTPS/TLS before public exposure.
 - JWT authentication, refresh-token rotation, role checks, upload validation, SQL parameterization, and selected audit events are implemented.
 - A shared rate limiter has not yet been implemented.
@@ -657,6 +702,7 @@ Model research/training is separate from starting the web application. The deplo
 - Organization-level tenant isolation is not implemented; current authorization is within a shared workspace.
 - Cash-flow forecasting (Model 4) is available for USD and CAD at 7/30/90-day horizons, but it forecasts an **invoice-clearance proxy**: the source has no payment ledger, so partially settled invoices may differ from cash actually received. Daily values are derived estimates, and every forecast is a historical simulation against a 2020-03-13 data cutoff, not a live projection. Forecasting readiness is reported by `GET /api/v1/cash-flow/health` and is deliberately independent of the three-model readiness gate.
 - Some dashboard/source snapshot endpoints may show the supplied original dataset snapshot; invoice/customer list/detail and prediction persistence use the database.
+- Model 4's 90-day horizon has no untouched holdout (only 12 holdout weeks exist), and the holdout period contains a structural break in the week of 2020-01-06 where recorded collections collapse. Both are documented rather than excluded.
 - Predictions are decision support, not guarantees.
 
 ## Author
