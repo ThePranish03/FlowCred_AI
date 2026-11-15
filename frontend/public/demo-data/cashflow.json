@@ -1,0 +1,3689 @@
+{
+  "generatedAt": "2026-11-15T11:29:32+00:00",
+  "mode": "demo",
+  "note": "Generated from the shipped cash-flow artifacts via the same serving code as the API. Values are invoice-clearance proxies, not verified cash receipts.",
+  "USD": {
+    "7": {
+      "currency": "USD",
+      "frequency": "weekly",
+      "asOf": "2020-03-08",
+      "trainedThrough": "2020-03-08",
+      "generatedAt": "2026-11-15T11:29:32.139488+00:00",
+      "horizonDays": 7,
+      "isHistoricalSimulation": true,
+      "isReplay": false,
+      "dataPeriod": {
+        "start": "2019-01-03",
+        "end": "2020-03-13",
+        "lastCompleteWeek": "2020-03-02"
+      },
+      "model": {
+        "id": "cash-flow-usd",
+        "algorithm": "xgboost_daily",
+        "version": "1.0.0",
+        "selection": "xgboost_daily achieved weekly-path WAPE 0.1219 vs best baseline seasonal_naive 0.1774 (31.3% relative improvement) and beat it on >= 4 origins."
+      },
+      "weekly": [
+        {
+          "weekStart": "2020-03-09",
+          "weekEnd": "2020-03-15",
+          "predicted": 18008582.79,
+          "lower": 16621429.64,
+          "upper": 20881755.73,
+          "isPartial": false
+        }
+      ],
+      "daily": [
+        {
+          "date": "2020-03-09",
+          "estimated": 4201679.35,
+          "lower": 3878035.18,
+          "upper": 4872034.79,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-10",
+          "estimated": 4185307.09,
+          "lower": 3862924.04,
+          "upper": 4853050.42,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-11",
+          "estimated": 3010635.12,
+          "lower": 2778733.92,
+          "upper": 3490965.83,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-12",
+          "estimated": 2885771.19,
+          "lower": 2663487.92,
+          "upper": 3346180.53,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-13",
+          "estimated": 3664235.85,
+          "lower": 3381989.53,
+          "upper": 4248845.06,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-14",
+          "estimated": 59939.14,
+          "lower": 55322.19,
+          "upper": 69502.11,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-15",
+          "estimated": 1015.05,
+          "lower": 936.86,
+          "upper": 1177.0,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        }
+      ],
+      "historical": [
+        {
+          "weekStart": "2019-09-09",
+          "weekEnd": "2019-09-15",
+          "actual": 20409789.98
+        },
+        {
+          "weekStart": "2019-09-16",
+          "weekEnd": "2019-09-22",
+          "actual": 17000810.46
+        },
+        {
+          "weekStart": "2019-09-23",
+          "weekEnd": "2019-09-29",
+          "actual": 20817806.39
+        },
+        {
+          "weekStart": "2019-09-30",
+          "weekEnd": "2019-10-06",
+          "actual": 18692776.68
+        },
+        {
+          "weekStart": "2019-10-07",
+          "weekEnd": "2019-10-13",
+          "actual": 20188851.1
+        },
+        {
+          "weekStart": "2019-10-14",
+          "weekEnd": "2019-10-20",
+          "actual": 17238271.3
+        },
+        {
+          "weekStart": "2019-10-21",
+          "weekEnd": "2019-10-27",
+          "actual": 18486194.09
+        },
+        {
+          "weekStart": "2019-10-28",
+          "weekEnd": "2019-11-03",
+          "actual": 20092912.73
+        },
+        {
+          "weekStart": "2019-11-04",
+          "weekEnd": "2019-11-10",
+          "actual": 20021121.91
+        },
+        {
+          "weekStart": "2019-11-11",
+          "weekEnd": "2019-11-17",
+          "actual": 19317651.43
+        },
+        {
+          "weekStart": "2019-11-18",
+          "weekEnd": "2019-11-24",
+          "actual": 19165945.93
+        },
+        {
+          "weekStart": "2019-11-25",
+          "weekEnd": "2019-12-01",
+          "actual": 23529924.25
+        },
+        {
+          "weekStart": "2019-12-02",
+          "weekEnd": "2019-12-08",
+          "actual": 23222908.11
+        },
+        {
+          "weekStart": "2019-12-09",
+          "weekEnd": "2019-12-15",
+          "actual": 19853192.18
+        },
+        {
+          "weekStart": "2019-12-16",
+          "weekEnd": "2019-12-22",
+          "actual": 20345857.36
+        },
+        {
+          "weekStart": "2019-12-23",
+          "weekEnd": "2019-12-29",
+          "actual": 23064799.6
+        },
+        {
+          "weekStart": "2019-12-30",
+          "weekEnd": "2020-01-05",
+          "actual": 10178678.18
+        },
+        {
+          "weekStart": "2020-01-06",
+          "weekEnd": "2020-01-12",
+          "actual": 1018573.08
+        },
+        {
+          "weekStart": "2020-01-13",
+          "weekEnd": "2020-01-19",
+          "actual": 9004743.34
+        },
+        {
+          "weekStart": "2020-01-20",
+          "weekEnd": "2020-01-26",
+          "actual": 14436638.82
+        },
+        {
+          "weekStart": "2020-01-27",
+          "weekEnd": "2020-02-02",
+          "actual": 16302654.09
+        },
+        {
+          "weekStart": "2020-02-03",
+          "weekEnd": "2020-02-09",
+          "actual": 16846941.26
+        },
+        {
+          "weekStart": "2020-02-10",
+          "weekEnd": "2020-02-16",
+          "actual": 16341924.26
+        },
+        {
+          "weekStart": "2020-02-17",
+          "weekEnd": "2020-02-23",
+          "actual": 13284344.24
+        },
+        {
+          "weekStart": "2020-02-24",
+          "weekEnd": "2020-03-01",
+          "actual": 18955033.1
+        },
+        {
+          "weekStart": "2020-03-02",
+          "weekEnd": "2020-03-08",
+          "actual": 15840866.99
+        }
+      ],
+      "totals": {
+        "predicted": 18008582.79,
+        "lower": 16621429.64,
+        "upper": 20881755.73
+      },
+      "comparison": [
+        {
+          "model": "due_date_schedule",
+          "mae": 14934762.18,
+          "rmse": 16526584.61,
+          "wape": 0.817143,
+          "folds": 26,
+          "holdoutWape": 0.709358
+        },
+        {
+          "model": "seasonal_naive",
+          "mae": 3242734.32,
+          "rmse": 4913000.96,
+          "wape": 0.177423,
+          "folds": 26,
+          "holdoutWape": 0.431008
+        },
+        {
+          "model": "xgboost_weekly",
+          "mae": 2568962.63,
+          "rmse": 3835872.6,
+          "wape": 0.140559,
+          "folds": 26,
+          "holdoutWape": 0.239028
+        },
+        {
+          "model": "xgboost_daily",
+          "mae": 2227671.63,
+          "rmse": 3416665.97,
+          "wape": 0.121885,
+          "folds": 26,
+          "holdoutWape": 0.203903
+        },
+        {
+          "model": "ets",
+          "mae": 3495548.3,
+          "rmse": 5053803.58,
+          "wape": 0.191256,
+          "folds": 26,
+          "holdoutWape": 0.39537
+        },
+        {
+          "model": "arima",
+          "mae": 3107977.89,
+          "rmse": 4606919.97,
+          "wape": 0.17005,
+          "folds": 26,
+          "holdoutWape": 0.420089
+        }
+      ],
+      "assumptions": [
+        "Weekly collection totals are the modelled forecast; daily values are derived estimates allocated by historical weekday shares.",
+        "USD and CAD are forecast independently; no FX conversion is applied.",
+        "Forecast origin is the last complete week; the horizon starts the next day.",
+        "Forecast values are nominal amounts in the invoice currency."
+      ],
+      "disclaimer": "Target is an invoice-clearance proxy: collections are approximated by invoice amounts dated at payment_date. The dataset has no payment ledger and no amount-received column, so partially settled invoices may over- or under-state cash actually received. These figures are not bank-verified cash inflow.",
+      "proxy": {
+        "payment_proxy": true,
+        "target_definition": "collection_proxy(date, currency) = SUM(invoice_amount) of invoices with invoice_status == 'paid' whose payment_date falls on that date, grouped by invoice_currency. Invoice-clearance proxy, not verified cash received.",
+        "requires_payment_ledger_for_verified_cash": true
+      }
+    },
+    "30": {
+      "currency": "USD",
+      "frequency": "weekly",
+      "asOf": "2020-03-08",
+      "trainedThrough": "2020-03-08",
+      "generatedAt": "2026-11-15T11:29:32.139725+00:00",
+      "horizonDays": 30,
+      "isHistoricalSimulation": true,
+      "isReplay": false,
+      "dataPeriod": {
+        "start": "2019-01-03",
+        "end": "2020-03-13",
+        "lastCompleteWeek": "2020-03-02"
+      },
+      "model": {
+        "id": "cash-flow-usd",
+        "algorithm": "xgboost_daily",
+        "version": "1.0.0",
+        "selection": "xgboost_daily achieved weekly-path WAPE 0.1219 vs best baseline seasonal_naive 0.1774 (31.3% relative improvement) and beat it on >= 4 origins."
+      },
+      "weekly": [
+        {
+          "weekStart": "2020-03-09",
+          "weekEnd": "2020-03-15",
+          "predicted": 18008582.79,
+          "lower": 16621429.64,
+          "upper": 20881755.73,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-03-16",
+          "weekEnd": "2020-03-22",
+          "predicted": 18142153.56,
+          "lower": 17277455.6,
+          "upper": 20854319.56,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-03-23",
+          "weekEnd": "2020-03-29",
+          "predicted": 19556084.34,
+          "lower": 18701152.98,
+          "upper": 22532062.25,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-03-30",
+          "weekEnd": "2020-04-05",
+          "predicted": 20076484.22,
+          "lower": 18824072.83,
+          "upper": 23046465.97,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-04-06",
+          "weekEnd": "2020-04-12",
+          "predicted": 19683545.53,
+          "lower": 17759384.47,
+          "upper": 22699649.36,
+          "isPartial": true
+        }
+      ],
+      "daily": [
+        {
+          "date": "2020-03-09",
+          "estimated": 4201679.35,
+          "lower": 3878035.18,
+          "upper": 4872034.79,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-10",
+          "estimated": 4185307.09,
+          "lower": 3862924.04,
+          "upper": 4853050.42,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-11",
+          "estimated": 3010635.12,
+          "lower": 2778733.92,
+          "upper": 3490965.83,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-12",
+          "estimated": 2885771.19,
+          "lower": 2663487.92,
+          "upper": 3346180.53,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-13",
+          "estimated": 3664235.85,
+          "lower": 3381989.53,
+          "upper": 4248845.06,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-14",
+          "estimated": 59939.14,
+          "lower": 55322.19,
+          "upper": 69502.11,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-15",
+          "estimated": 1015.05,
+          "lower": 936.86,
+          "upper": 1177.0,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-16",
+          "estimated": 4232843.46,
+          "lower": 4031096.13,
+          "upper": 4865633.51,
+          "weekStart": "2020-03-16",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-17",
+          "estimated": 4216349.77,
+          "lower": 4015388.57,
+          "upper": 4846674.08,
+          "weekStart": "2020-03-16",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-18",
+          "estimated": 3032965.18,
+          "lower": 2888406.89,
+          "upper": 3486379.11,
+          "weekStart": "2020-03-16",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-19",
+          "estimated": 2907175.13,
+          "lower": 2768612.29,
+          "upper": 3341784.04,
+          "weekStart": "2020-03-16",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-20",
+          "estimated": 3691413.72,
+          "lower": 3515472.2,
+          "upper": 4243262.58,
+          "weekStart": "2020-03-16",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-21",
+          "estimated": 60383.72,
+          "lower": 57505.69,
+          "upper": 69410.8,
+          "weekStart": "2020-03-16",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-22",
+          "estimated": 1022.58,
+          "lower": 973.84,
+          "upper": 1175.45,
+          "weekStart": "2020-03-16",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-23",
+          "estimated": 4562735.26,
+          "lower": 4363266.63,
+          "upper": 5257076.68,
+          "weekStart": "2020-03-23",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-24",
+          "estimated": 4544956.11,
+          "lower": 4346264.73,
+          "upper": 5236591.96,
+          "weekStart": "2020-03-23",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-25",
+          "estimated": 3269343.01,
+          "lower": 3126417.47,
+          "upper": 3766860.43,
+          "weekStart": "2020-03-23",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-26",
+          "estimated": 3133749.36,
+          "lower": 2996751.55,
+          "upper": 3610632.6,
+          "weekStart": "2020-03-23",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-27",
+          "estimated": 3979108.53,
+          "lower": 3805154.24,
+          "upper": 4584635.63,
+          "weekStart": "2020-03-23",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-28",
+          "estimated": 65089.8,
+          "lower": 62244.27,
+          "upper": 74994.94,
+          "weekStart": "2020-03-23",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-29",
+          "estimated": 1102.27,
+          "lower": 1054.09,
+          "upper": 1270.01,
+          "weekStart": "2020-03-23",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-30",
+          "estimated": 4684152.56,
+          "lower": 4391945.72,
+          "upper": 5377094.98,
+          "weekStart": "2020-03-30",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-31",
+          "estimated": 4665900.29,
+          "lower": 4374832.07,
+          "upper": 5356142.6,
+          "weekStart": "2020-03-30",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-01",
+          "estimated": 3356342.31,
+          "lower": 3146966.94,
+          "upper": 3852857.31,
+          "weekStart": "2020-03-30",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-02",
+          "estimated": 3217140.43,
+          "lower": 3016448.75,
+          "upper": 3693062.82,
+          "weekStart": "2020-03-30",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-03",
+          "estimated": 4084995.14,
+          "lower": 3830164.95,
+          "upper": 4689302.2,
+          "weekStart": "2020-03-30",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-04",
+          "estimated": 66821.88,
+          "lower": 62653.39,
+          "upper": 76707.06,
+          "weekStart": "2020-03-30",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-05",
+          "estimated": 1131.61,
+          "lower": 1061.01,
+          "upper": 1299.01,
+          "weekStart": "2020-03-30",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-06",
+          "estimated": 4592473.92,
+          "lower": 4143537.55,
+          "upper": 5296177.33,
+          "weekStart": "2020-04-06",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-07",
+          "estimated": 4574578.89,
+          "lower": 4127391.84,
+          "upper": 5275540.25,
+          "weekStart": "2020-04-06",
+          "isEstimate": true
+        }
+      ],
+      "historical": [
+        {
+          "weekStart": "2019-09-09",
+          "weekEnd": "2019-09-15",
+          "actual": 20409789.98
+        },
+        {
+          "weekStart": "2019-09-16",
+          "weekEnd": "2019-09-22",
+          "actual": 17000810.46
+        },
+        {
+          "weekStart": "2019-09-23",
+          "weekEnd": "2019-09-29",
+          "actual": 20817806.39
+        },
+        {
+          "weekStart": "2019-09-30",
+          "weekEnd": "2019-10-06",
+          "actual": 18692776.68
+        },
+        {
+          "weekStart": "2019-10-07",
+          "weekEnd": "2019-10-13",
+          "actual": 20188851.1
+        },
+        {
+          "weekStart": "2019-10-14",
+          "weekEnd": "2019-10-20",
+          "actual": 17238271.3
+        },
+        {
+          "weekStart": "2019-10-21",
+          "weekEnd": "2019-10-27",
+          "actual": 18486194.09
+        },
+        {
+          "weekStart": "2019-10-28",
+          "weekEnd": "2019-11-03",
+          "actual": 20092912.73
+        },
+        {
+          "weekStart": "2019-11-04",
+          "weekEnd": "2019-11-10",
+          "actual": 20021121.91
+        },
+        {
+          "weekStart": "2019-11-11",
+          "weekEnd": "2019-11-17",
+          "actual": 19317651.43
+        },
+        {
+          "weekStart": "2019-11-18",
+          "weekEnd": "2019-11-24",
+          "actual": 19165945.93
+        },
+        {
+          "weekStart": "2019-11-25",
+          "weekEnd": "2019-12-01",
+          "actual": 23529924.25
+        },
+        {
+          "weekStart": "2019-12-02",
+          "weekEnd": "2019-12-08",
+          "actual": 23222908.11
+        },
+        {
+          "weekStart": "2019-12-09",
+          "weekEnd": "2019-12-15",
+          "actual": 19853192.18
+        },
+        {
+          "weekStart": "2019-12-16",
+          "weekEnd": "2019-12-22",
+          "actual": 20345857.36
+        },
+        {
+          "weekStart": "2019-12-23",
+          "weekEnd": "2019-12-29",
+          "actual": 23064799.6
+        },
+        {
+          "weekStart": "2019-12-30",
+          "weekEnd": "2020-01-05",
+          "actual": 10178678.18
+        },
+        {
+          "weekStart": "2020-01-06",
+          "weekEnd": "2020-01-12",
+          "actual": 1018573.08
+        },
+        {
+          "weekStart": "2020-01-13",
+          "weekEnd": "2020-01-19",
+          "actual": 9004743.34
+        },
+        {
+          "weekStart": "2020-01-20",
+          "weekEnd": "2020-01-26",
+          "actual": 14436638.82
+        },
+        {
+          "weekStart": "2020-01-27",
+          "weekEnd": "2020-02-02",
+          "actual": 16302654.09
+        },
+        {
+          "weekStart": "2020-02-03",
+          "weekEnd": "2020-02-09",
+          "actual": 16846941.26
+        },
+        {
+          "weekStart": "2020-02-10",
+          "weekEnd": "2020-02-16",
+          "actual": 16341924.26
+        },
+        {
+          "weekStart": "2020-02-17",
+          "weekEnd": "2020-02-23",
+          "actual": 13284344.24
+        },
+        {
+          "weekStart": "2020-02-24",
+          "weekEnd": "2020-03-01",
+          "actual": 18955033.1
+        },
+        {
+          "weekStart": "2020-03-02",
+          "weekEnd": "2020-03-08",
+          "actual": 15840866.99
+        }
+      ],
+      "totals": {
+        "predicted": 84950357.72,
+        "lower": 81827204.72,
+        "upper": 95653213.08
+      },
+      "comparison": [
+        {
+          "model": "due_date_schedule",
+          "mae": 14934762.18,
+          "rmse": 16526584.61,
+          "wape": 0.817143,
+          "folds": 26,
+          "holdoutWape": 0.709358
+        },
+        {
+          "model": "seasonal_naive",
+          "mae": 3242734.32,
+          "rmse": 4913000.96,
+          "wape": 0.177423,
+          "folds": 26,
+          "holdoutWape": 0.431008
+        },
+        {
+          "model": "xgboost_weekly",
+          "mae": 2568962.63,
+          "rmse": 3835872.6,
+          "wape": 0.140559,
+          "folds": 26,
+          "holdoutWape": 0.239028
+        },
+        {
+          "model": "xgboost_daily",
+          "mae": 2227671.63,
+          "rmse": 3416665.97,
+          "wape": 0.121885,
+          "folds": 26,
+          "holdoutWape": 0.203903
+        },
+        {
+          "model": "ets",
+          "mae": 3495548.3,
+          "rmse": 5053803.58,
+          "wape": 0.191256,
+          "folds": 26,
+          "holdoutWape": 0.39537
+        },
+        {
+          "model": "arima",
+          "mae": 3107977.89,
+          "rmse": 4606919.97,
+          "wape": 0.17005,
+          "folds": 26,
+          "holdoutWape": 0.420089
+        }
+      ],
+      "assumptions": [
+        "Weekly collection totals are the modelled forecast; daily values are derived estimates allocated by historical weekday shares.",
+        "USD and CAD are forecast independently; no FX conversion is applied.",
+        "Forecast origin is the last complete week; the horizon starts the next day.",
+        "Forecast values are nominal amounts in the invoice currency."
+      ],
+      "disclaimer": "Target is an invoice-clearance proxy: collections are approximated by invoice amounts dated at payment_date. The dataset has no payment ledger and no amount-received column, so partially settled invoices may over- or under-state cash actually received. These figures are not bank-verified cash inflow.",
+      "proxy": {
+        "payment_proxy": true,
+        "target_definition": "collection_proxy(date, currency) = SUM(invoice_amount) of invoices with invoice_status == 'paid' whose payment_date falls on that date, grouped by invoice_currency. Invoice-clearance proxy, not verified cash received.",
+        "requires_payment_ledger_for_verified_cash": true
+      }
+    },
+    "90": {
+      "currency": "USD",
+      "frequency": "weekly",
+      "asOf": "2020-03-08",
+      "trainedThrough": "2020-03-08",
+      "generatedAt": "2026-11-15T11:29:32.140209+00:00",
+      "horizonDays": 90,
+      "isHistoricalSimulation": true,
+      "isReplay": false,
+      "dataPeriod": {
+        "start": "2019-01-03",
+        "end": "2020-03-13",
+        "lastCompleteWeek": "2020-03-02"
+      },
+      "model": {
+        "id": "cash-flow-usd",
+        "algorithm": "xgboost_daily",
+        "version": "1.0.0",
+        "selection": "xgboost_daily achieved weekly-path WAPE 0.1219 vs best baseline seasonal_naive 0.1774 (31.3% relative improvement) and beat it on >= 4 origins."
+      },
+      "weekly": [
+        {
+          "weekStart": "2020-03-09",
+          "weekEnd": "2020-03-15",
+          "predicted": 18008582.79,
+          "lower": 16621429.64,
+          "upper": 20881755.73,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-03-16",
+          "weekEnd": "2020-03-22",
+          "predicted": 18142153.56,
+          "lower": 17277455.6,
+          "upper": 20854319.56,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-03-23",
+          "weekEnd": "2020-03-29",
+          "predicted": 19556084.34,
+          "lower": 18701152.98,
+          "upper": 22532062.25,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-03-30",
+          "weekEnd": "2020-04-05",
+          "predicted": 20076484.22,
+          "lower": 18824072.83,
+          "upper": 23046465.97,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-04-06",
+          "weekEnd": "2020-04-12",
+          "predicted": 19683545.53,
+          "lower": 17759384.47,
+          "upper": 22699649.36,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-04-13",
+          "weekEnd": "2020-04-19",
+          "predicted": 19141134.87,
+          "lower": 15669773.63,
+          "upper": 22533480.65,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-04-20",
+          "weekEnd": "2020-04-26",
+          "predicted": 21157656.33,
+          "lower": 16510226.17,
+          "upper": 24118510.74,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-04-27",
+          "weekEnd": "2020-05-03",
+          "predicted": 19420633.03,
+          "lower": 15335195.87,
+          "upper": 22519858.42,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-05-04",
+          "weekEnd": "2020-05-10",
+          "predicted": 18856681.67,
+          "lower": 14767961.18,
+          "upper": 21924836.07,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-05-11",
+          "weekEnd": "2020-05-17",
+          "predicted": 18519996.01,
+          "lower": 14473273.63,
+          "upper": 21293183.79,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-05-18",
+          "weekEnd": "2020-05-24",
+          "predicted": 19415981.0,
+          "lower": 15020514.33,
+          "upper": 22319051.28,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-05-25",
+          "weekEnd": "2020-05-31",
+          "predicted": 11366078.4,
+          "lower": 7046271.69,
+          "upper": 14687820.39,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-06-01",
+          "weekEnd": "2020-06-07",
+          "predicted": 12061076.25,
+          "lower": 7694351.26,
+          "upper": 15230792.49,
+          "isPartial": true
+        }
+      ],
+      "daily": [
+        {
+          "date": "2020-03-09",
+          "estimated": 4201679.35,
+          "lower": 3878035.18,
+          "upper": 4872034.79,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-10",
+          "estimated": 4185307.09,
+          "lower": 3862924.04,
+          "upper": 4853050.42,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-11",
+          "estimated": 3010635.12,
+          "lower": 2778733.92,
+          "upper": 3490965.83,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-12",
+          "estimated": 2885771.19,
+          "lower": 2663487.92,
+          "upper": 3346180.53,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-13",
+          "estimated": 3664235.85,
+          "lower": 3381989.53,
+          "upper": 4248845.06,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-14",
+          "estimated": 59939.14,
+          "lower": 55322.19,
+          "upper": 69502.11,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-15",
+          "estimated": 1015.05,
+          "lower": 936.86,
+          "upper": 1177.0,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-16",
+          "estimated": 4232843.46,
+          "lower": 4031096.13,
+          "upper": 4865633.51,
+          "weekStart": "2020-03-16",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-17",
+          "estimated": 4216349.77,
+          "lower": 4015388.57,
+          "upper": 4846674.08,
+          "weekStart": "2020-03-16",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-18",
+          "estimated": 3032965.18,
+          "lower": 2888406.89,
+          "upper": 3486379.11,
+          "weekStart": "2020-03-16",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-19",
+          "estimated": 2907175.13,
+          "lower": 2768612.29,
+          "upper": 3341784.04,
+          "weekStart": "2020-03-16",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-20",
+          "estimated": 3691413.72,
+          "lower": 3515472.2,
+          "upper": 4243262.58,
+          "weekStart": "2020-03-16",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-21",
+          "estimated": 60383.72,
+          "lower": 57505.69,
+          "upper": 69410.8,
+          "weekStart": "2020-03-16",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-22",
+          "estimated": 1022.58,
+          "lower": 973.84,
+          "upper": 1175.45,
+          "weekStart": "2020-03-16",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-23",
+          "estimated": 4562735.26,
+          "lower": 4363266.63,
+          "upper": 5257076.68,
+          "weekStart": "2020-03-23",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-24",
+          "estimated": 4544956.11,
+          "lower": 4346264.73,
+          "upper": 5236591.96,
+          "weekStart": "2020-03-23",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-25",
+          "estimated": 3269343.01,
+          "lower": 3126417.47,
+          "upper": 3766860.43,
+          "weekStart": "2020-03-23",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-26",
+          "estimated": 3133749.36,
+          "lower": 2996751.55,
+          "upper": 3610632.6,
+          "weekStart": "2020-03-23",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-27",
+          "estimated": 3979108.53,
+          "lower": 3805154.24,
+          "upper": 4584635.63,
+          "weekStart": "2020-03-23",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-28",
+          "estimated": 65089.8,
+          "lower": 62244.27,
+          "upper": 74994.94,
+          "weekStart": "2020-03-23",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-29",
+          "estimated": 1102.27,
+          "lower": 1054.09,
+          "upper": 1270.01,
+          "weekStart": "2020-03-23",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-30",
+          "estimated": 4684152.56,
+          "lower": 4391945.72,
+          "upper": 5377094.98,
+          "weekStart": "2020-03-30",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-31",
+          "estimated": 4665900.29,
+          "lower": 4374832.07,
+          "upper": 5356142.6,
+          "weekStart": "2020-03-30",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-01",
+          "estimated": 3356342.31,
+          "lower": 3146966.94,
+          "upper": 3852857.31,
+          "weekStart": "2020-03-30",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-02",
+          "estimated": 3217140.43,
+          "lower": 3016448.75,
+          "upper": 3693062.82,
+          "weekStart": "2020-03-30",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-03",
+          "estimated": 4084995.14,
+          "lower": 3830164.95,
+          "upper": 4689302.2,
+          "weekStart": "2020-03-30",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-04",
+          "estimated": 66821.88,
+          "lower": 62653.39,
+          "upper": 76707.06,
+          "weekStart": "2020-03-30",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-05",
+          "estimated": 1131.61,
+          "lower": 1061.01,
+          "upper": 1299.01,
+          "weekStart": "2020-03-30",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-06",
+          "estimated": 4592473.92,
+          "lower": 4143537.55,
+          "upper": 5296177.33,
+          "weekStart": "2020-04-06",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-07",
+          "estimated": 4574578.89,
+          "lower": 4127391.84,
+          "upper": 5275540.25,
+          "weekStart": "2020-04-06",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-08",
+          "estimated": 3290651.69,
+          "lower": 2968974.69,
+          "upper": 3794877.27,
+          "weekStart": "2020-04-06",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-09",
+          "estimated": 3154174.28,
+          "lower": 2845838.6,
+          "upper": 3637487.46,
+          "weekStart": "2020-04-06",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-10",
+          "estimated": 4005043.27,
+          "lower": 3613531.06,
+          "upper": 4618734.85,
+          "weekStart": "2020-04-06",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-11",
+          "estimated": 65514.03,
+          "lower": 59109.72,
+          "upper": 75552.73,
+          "weekStart": "2020-04-06",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-12",
+          "estimated": 1109.46,
+          "lower": 1001.0,
+          "upper": 1279.46,
+          "weekStart": "2020-04-06",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-13",
+          "estimated": 4465921.17,
+          "lower": 3655999.2,
+          "upper": 5257407.62,
+          "weekStart": "2020-04-13",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-14",
+          "estimated": 4448519.26,
+          "lower": 3641753.24,
+          "upper": 5236921.61,
+          "weekStart": "2020-04-13",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-15",
+          "estimated": 3199972.67,
+          "lower": 2619638.16,
+          "upper": 3767097.55,
+          "weekStart": "2020-04-13",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-16",
+          "estimated": 3067256.11,
+          "lower": 2510990.55,
+          "upper": 3610859.89,
+          "weekStart": "2020-04-13",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-17",
+          "estimated": 3894678.08,
+          "lower": 3188354.52,
+          "upper": 4584924.24,
+          "weekStart": "2020-04-13",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-18",
+          "estimated": 63708.69,
+          "lower": 52154.73,
+          "upper": 74999.66,
+          "weekStart": "2020-04-13",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-19",
+          "estimated": 1078.89,
+          "lower": 883.22,
+          "upper": 1270.09,
+          "weekStart": "2020-04-13",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-20",
+          "estimated": 4936406.64,
+          "lower": 3852089.7,
+          "upper": 5627219.51,
+          "weekStart": "2020-04-20",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-21",
+          "estimated": 4917171.44,
+          "lower": 3837079.65,
+          "upper": 5605292.5,
+          "weekStart": "2020-04-20",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-22",
+          "estimated": 3537090.28,
+          "lower": 2760143.16,
+          "upper": 4032079.38,
+          "weekStart": "2020-04-20",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-23",
+          "estimated": 3390392.0,
+          "lower": 2645668.21,
+          "upper": 3864851.79,
+          "weekStart": "2020-04-20",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-24",
+          "estimated": 4304983.01,
+          "lower": 3359362.78,
+          "upper": 4907432.9,
+          "weekStart": "2020-04-20",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-25",
+          "estimated": 70420.41,
+          "lower": 54952.07,
+          "upper": 80275.22,
+          "weekStart": "2020-04-20",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-26",
+          "estimated": 1192.55,
+          "lower": 930.6,
+          "upper": 1359.43,
+          "weekStart": "2020-04-20",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-27",
+          "estimated": 4531132.39,
+          "lower": 3577937.06,
+          "upper": 5254229.34,
+          "weekStart": "2020-04-27",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-28",
+          "estimated": 4513476.38,
+          "lower": 3563995.28,
+          "upper": 5233755.72,
+          "weekStart": "2020-04-27",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-29",
+          "estimated": 3246698.56,
+          "lower": 2563704.19,
+          "upper": 3764820.22,
+          "weekStart": "2020-04-27",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-30",
+          "estimated": 3112044.07,
+          "lower": 2457376.4,
+          "upper": 3608677.0,
+          "weekStart": "2020-04-27",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-01",
+          "estimated": 3951548.03,
+          "lower": 3120277.43,
+          "upper": 4582152.5,
+          "weekStart": "2020-04-27",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-02",
+          "estimated": 64638.96,
+          "lower": 51041.14,
+          "upper": 74954.32,
+          "weekStart": "2020-04-27",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-03",
+          "estimated": 1094.64,
+          "lower": 864.36,
+          "upper": 1269.33,
+          "weekStart": "2020-04-27",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-04",
+          "estimated": 4399553.86,
+          "lower": 3445592.48,
+          "upper": 5115401.47,
+          "weekStart": "2020-05-04",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-05",
+          "estimated": 4382410.56,
+          "lower": 3432166.39,
+          "upper": 5095468.81,
+          "weekStart": "2020-05-04",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-06",
+          "estimated": 3152418.42,
+          "lower": 2468875.15,
+          "upper": 3665345.69,
+          "weekStart": "2020-05-04",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-07",
+          "estimated": 3021674.13,
+          "lower": 2366480.33,
+          "upper": 3513328.12,
+          "weekStart": "2020-05-04",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-08",
+          "estimated": 3836799.92,
+          "lower": 3004861.26,
+          "upper": 4461082.32,
+          "weekStart": "2020-05-04",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-09",
+          "estimated": 62761.93,
+          "lower": 49153.17,
+          "upper": 72973.87,
+          "weekStart": "2020-05-04",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-10",
+          "estimated": 1062.85,
+          "lower": 832.39,
+          "upper": 1235.79,
+          "weekStart": "2020-05-04",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-11",
+          "estimated": 4320999.92,
+          "lower": 3376837.35,
+          "upper": 4968027.28,
+          "weekStart": "2020-05-11",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-12",
+          "estimated": 4304162.72,
+          "lower": 3363679.17,
+          "upper": 4948668.87,
+          "weekStart": "2020-05-11",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-13",
+          "estimated": 3096132.05,
+          "lower": 2419609.94,
+          "upper": 3559747.46,
+          "weekStart": "2020-05-11",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-14",
+          "estimated": 2967722.2,
+          "lower": 2319258.35,
+          "upper": 3412109.49,
+          "weekStart": "2020-05-11",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-15",
+          "estimated": 3768293.94,
+          "lower": 2944900.7,
+          "upper": 4332559.0,
+          "weekStart": "2020-05-11",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-16",
+          "estimated": 61641.31,
+          "lower": 48172.34,
+          "upper": 70871.5,
+          "weekStart": "2020-05-11",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-17",
+          "estimated": 1043.88,
+          "lower": 815.78,
+          "upper": 1200.19,
+          "weekStart": "2020-05-11",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-18",
+          "estimated": 4530047.0,
+          "lower": 3504517.02,
+          "upper": 5207377.95,
+          "weekStart": "2020-05-18",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-19",
+          "estimated": 4512395.22,
+          "lower": 3490861.32,
+          "upper": 5187086.88,
+          "weekStart": "2020-05-18",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-20",
+          "estimated": 3245920.84,
+          "lower": 2511096.43,
+          "upper": 3731249.72,
+          "weekStart": "2020-05-18",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-21",
+          "estimated": 3111298.61,
+          "lower": 2406950.51,
+          "upper": 3576498.82,
+          "weekStart": "2020-05-18",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-22",
+          "estimated": 3950601.47,
+          "lower": 3056248.67,
+          "upper": 4541293.94,
+          "weekStart": "2020-05-18",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-23",
+          "estimated": 64623.48,
+          "lower": 49993.76,
+          "upper": 74285.96,
+          "weekStart": "2020-05-18",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-24",
+          "estimated": 1094.38,
+          "lower": 846.63,
+          "upper": 1258.01,
+          "weekStart": "2020-05-18",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-25",
+          "estimated": 2651880.91,
+          "lower": 1644003.56,
+          "upper": 3426894.41,
+          "weekStart": "2020-05-25",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-26",
+          "estimated": 2641547.59,
+          "lower": 1637597.54,
+          "upper": 3413541.17,
+          "weekStart": "2020-05-25",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-27",
+          "estimated": 1900155.9,
+          "lower": 1177980.15,
+          "upper": 2455477.39,
+          "weekStart": "2020-05-25",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-28",
+          "estimated": 1821348.3,
+          "lower": 1129124.27,
+          "upper": 2353638.23,
+          "weekStart": "2020-05-25",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-29",
+          "estimated": 2312674.6,
+          "lower": 1433716.45,
+          "upper": 2988554.88,
+          "weekStart": "2020-05-25",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-30",
+          "estimated": 37830.46,
+          "lower": 23452.57,
+          "upper": 48886.43,
+          "weekStart": "2020-05-25",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-31",
+          "estimated": 640.65,
+          "lower": 397.16,
+          "upper": 827.88,
+          "weekStart": "2020-05-25",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-06-01",
+          "estimated": 2814034.6,
+          "lower": 1795210.49,
+          "upper": 3553578.15,
+          "weekStart": "2020-06-01",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-06-02",
+          "estimated": 2803069.43,
+          "lower": 1788215.28,
+          "upper": 3539731.28,
+          "weekStart": "2020-06-01",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-06-03",
+          "estimated": 2016344.1,
+          "lower": 1286324.66,
+          "upper": 2546250.27,
+          "weekStart": "2020-06-01",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-06-04",
+          "estimated": 1932717.68,
+          "lower": 1232975.27,
+          "upper": 2440646.37,
+          "weekStart": "2020-06-01",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-06-05",
+          "estimated": 2454086.95,
+          "lower": 1565582.26,
+          "upper": 3099034.31,
+          "weekStart": "2020-06-01",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-06-06",
+          "estimated": 40143.67,
+          "lower": 25609.61,
+          "upper": 50693.64,
+          "weekStart": "2020-06-01",
+          "isEstimate": true
+        }
+      ],
+      "historical": [
+        {
+          "weekStart": "2019-09-09",
+          "weekEnd": "2019-09-15",
+          "actual": 20409789.98
+        },
+        {
+          "weekStart": "2019-09-16",
+          "weekEnd": "2019-09-22",
+          "actual": 17000810.46
+        },
+        {
+          "weekStart": "2019-09-23",
+          "weekEnd": "2019-09-29",
+          "actual": 20817806.39
+        },
+        {
+          "weekStart": "2019-09-30",
+          "weekEnd": "2019-10-06",
+          "actual": 18692776.68
+        },
+        {
+          "weekStart": "2019-10-07",
+          "weekEnd": "2019-10-13",
+          "actual": 20188851.1
+        },
+        {
+          "weekStart": "2019-10-14",
+          "weekEnd": "2019-10-20",
+          "actual": 17238271.3
+        },
+        {
+          "weekStart": "2019-10-21",
+          "weekEnd": "2019-10-27",
+          "actual": 18486194.09
+        },
+        {
+          "weekStart": "2019-10-28",
+          "weekEnd": "2019-11-03",
+          "actual": 20092912.73
+        },
+        {
+          "weekStart": "2019-11-04",
+          "weekEnd": "2019-11-10",
+          "actual": 20021121.91
+        },
+        {
+          "weekStart": "2019-11-11",
+          "weekEnd": "2019-11-17",
+          "actual": 19317651.43
+        },
+        {
+          "weekStart": "2019-11-18",
+          "weekEnd": "2019-11-24",
+          "actual": 19165945.93
+        },
+        {
+          "weekStart": "2019-11-25",
+          "weekEnd": "2019-12-01",
+          "actual": 23529924.25
+        },
+        {
+          "weekStart": "2019-12-02",
+          "weekEnd": "2019-12-08",
+          "actual": 23222908.11
+        },
+        {
+          "weekStart": "2019-12-09",
+          "weekEnd": "2019-12-15",
+          "actual": 19853192.18
+        },
+        {
+          "weekStart": "2019-12-16",
+          "weekEnd": "2019-12-22",
+          "actual": 20345857.36
+        },
+        {
+          "weekStart": "2019-12-23",
+          "weekEnd": "2019-12-29",
+          "actual": 23064799.6
+        },
+        {
+          "weekStart": "2019-12-30",
+          "weekEnd": "2020-01-05",
+          "actual": 10178678.18
+        },
+        {
+          "weekStart": "2020-01-06",
+          "weekEnd": "2020-01-12",
+          "actual": 1018573.08
+        },
+        {
+          "weekStart": "2020-01-13",
+          "weekEnd": "2020-01-19",
+          "actual": 9004743.34
+        },
+        {
+          "weekStart": "2020-01-20",
+          "weekEnd": "2020-01-26",
+          "actual": 14436638.82
+        },
+        {
+          "weekStart": "2020-01-27",
+          "weekEnd": "2020-02-02",
+          "actual": 16302654.09
+        },
+        {
+          "weekStart": "2020-02-03",
+          "weekEnd": "2020-02-09",
+          "actual": 16846941.26
+        },
+        {
+          "weekStart": "2020-02-10",
+          "weekEnd": "2020-02-16",
+          "actual": 16341924.26
+        },
+        {
+          "weekStart": "2020-02-17",
+          "weekEnd": "2020-02-23",
+          "actual": 13284344.24
+        },
+        {
+          "weekStart": "2020-02-24",
+          "weekEnd": "2020-03-01",
+          "actual": 18955033.1
+        },
+        {
+          "weekStart": "2020-03-02",
+          "weekEnd": "2020-03-08",
+          "actual": 15840866.99
+        }
+      ],
+      "totals": {
+        "predicted": 235405408.21,
+        "lower": 213302275.31,
+        "upper": 253833547.67
+      },
+      "comparison": [
+        {
+          "model": "due_date_schedule",
+          "mae": 14934762.18,
+          "rmse": 16526584.61,
+          "wape": 0.817143,
+          "folds": 26,
+          "holdoutWape": 0.709358
+        },
+        {
+          "model": "seasonal_naive",
+          "mae": 3242734.32,
+          "rmse": 4913000.96,
+          "wape": 0.177423,
+          "folds": 26,
+          "holdoutWape": 0.431008
+        },
+        {
+          "model": "xgboost_weekly",
+          "mae": 2568962.63,
+          "rmse": 3835872.6,
+          "wape": 0.140559,
+          "folds": 26,
+          "holdoutWape": 0.239028
+        },
+        {
+          "model": "xgboost_daily",
+          "mae": 2227671.63,
+          "rmse": 3416665.97,
+          "wape": 0.121885,
+          "folds": 26,
+          "holdoutWape": 0.203903
+        },
+        {
+          "model": "ets",
+          "mae": 3495548.3,
+          "rmse": 5053803.58,
+          "wape": 0.191256,
+          "folds": 26,
+          "holdoutWape": 0.39537
+        },
+        {
+          "model": "arima",
+          "mae": 3107977.89,
+          "rmse": 4606919.97,
+          "wape": 0.17005,
+          "folds": 26,
+          "holdoutWape": 0.420089
+        }
+      ],
+      "assumptions": [
+        "Weekly collection totals are the modelled forecast; daily values are derived estimates allocated by historical weekday shares.",
+        "USD and CAD are forecast independently; no FX conversion is applied.",
+        "Forecast origin is the last complete week; the horizon starts the next day.",
+        "Forecast values are nominal amounts in the invoice currency."
+      ],
+      "disclaimer": "Target is an invoice-clearance proxy: collections are approximated by invoice amounts dated at payment_date. The dataset has no payment ledger and no amount-received column, so partially settled invoices may over- or under-state cash actually received. These figures are not bank-verified cash inflow.",
+      "proxy": {
+        "payment_proxy": true,
+        "target_definition": "collection_proxy(date, currency) = SUM(invoice_amount) of invoices with invoice_status == 'paid' whose payment_date falls on that date, grouped by invoice_currency. Invoice-clearance proxy, not verified cash received.",
+        "requires_payment_ledger_for_verified_cash": true
+      }
+    }
+  },
+  "CAD": {
+    "7": {
+      "currency": "CAD",
+      "frequency": "weekly",
+      "asOf": "2020-03-08",
+      "trainedThrough": "2020-03-08",
+      "generatedAt": "2026-11-15T11:29:32.140321+00:00",
+      "horizonDays": 7,
+      "isHistoricalSimulation": true,
+      "isReplay": false,
+      "dataPeriod": {
+        "start": "2019-01-03",
+        "end": "2020-03-13",
+        "lastCompleteWeek": "2020-03-02"
+      },
+      "model": {
+        "id": "cash-flow-cad",
+        "algorithm": "arima",
+        "version": "1.0.0",
+        "selection": "arima achieved weekly-path WAPE 0.2992 vs best baseline seasonal_naive 0.3555 (15.8% relative improvement) and beat it on >= 4 origins."
+      },
+      "weekly": [
+        {
+          "weekStart": "2020-03-09",
+          "weekEnd": "2020-03-15",
+          "predicted": 2220460.43,
+          "lower": 1646109.8,
+          "upper": 3247883.34,
+          "isPartial": false
+        }
+      ],
+      "daily": [
+        {
+          "date": "2020-03-09",
+          "estimated": 508979.62,
+          "lower": 377325.5,
+          "upper": 744488.13,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-10",
+          "estimated": 318881.33,
+          "lower": 236398.58,
+          "upper": 466430.01,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-11",
+          "estimated": 291020.89,
+          "lower": 215744.59,
+          "upper": 425678.33,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-12",
+          "estimated": 344234.86,
+          "lower": 255194.09,
+          "upper": 503514.79,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-13",
+          "estimated": 757292.99,
+          "lower": 561409.42,
+          "upper": 1107697.87,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-14",
+          "estimated": 50.74,
+          "lower": 37.62,
+          "upper": 74.22,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-15",
+          "estimated": 0.0,
+          "lower": 0.0,
+          "upper": 0.0,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        }
+      ],
+      "historical": [
+        {
+          "weekStart": "2019-09-09",
+          "weekEnd": "2019-09-15",
+          "actual": 3899575.87
+        },
+        {
+          "weekStart": "2019-09-16",
+          "weekEnd": "2019-09-22",
+          "actual": 2311985.87
+        },
+        {
+          "weekStart": "2019-09-23",
+          "weekEnd": "2019-09-29",
+          "actual": 2723136.03
+        },
+        {
+          "weekStart": "2019-09-30",
+          "weekEnd": "2019-10-06",
+          "actual": 2362174.49
+        },
+        {
+          "weekStart": "2019-10-07",
+          "weekEnd": "2019-10-13",
+          "actual": 3645507.13
+        },
+        {
+          "weekStart": "2019-10-14",
+          "weekEnd": "2019-10-20",
+          "actual": 4221150.28
+        },
+        {
+          "weekStart": "2019-10-21",
+          "weekEnd": "2019-10-27",
+          "actual": 3517206.61
+        },
+        {
+          "weekStart": "2019-10-28",
+          "weekEnd": "2019-11-03",
+          "actual": 4486305.36
+        },
+        {
+          "weekStart": "2019-11-04",
+          "weekEnd": "2019-11-10",
+          "actual": 3480765.54
+        },
+        {
+          "weekStart": "2019-11-11",
+          "weekEnd": "2019-11-17",
+          "actual": 2927284.7
+        },
+        {
+          "weekStart": "2019-11-18",
+          "weekEnd": "2019-11-24",
+          "actual": 2734646.02
+        },
+        {
+          "weekStart": "2019-11-25",
+          "weekEnd": "2019-12-01",
+          "actual": 3873932.65
+        },
+        {
+          "weekStart": "2019-12-02",
+          "weekEnd": "2019-12-08",
+          "actual": 2603317.12
+        },
+        {
+          "weekStart": "2019-12-09",
+          "weekEnd": "2019-12-15",
+          "actual": 3571436.03
+        },
+        {
+          "weekStart": "2019-12-16",
+          "weekEnd": "2019-12-22",
+          "actual": 5466456.36
+        },
+        {
+          "weekStart": "2019-12-23",
+          "weekEnd": "2019-12-29",
+          "actual": 5249515.65
+        },
+        {
+          "weekStart": "2019-12-30",
+          "weekEnd": "2020-01-05",
+          "actual": 1462343.4
+        },
+        {
+          "weekStart": "2020-01-06",
+          "weekEnd": "2020-01-12",
+          "actual": 0.0
+        },
+        {
+          "weekStart": "2020-01-13",
+          "weekEnd": "2020-01-19",
+          "actual": 1320270.06
+        },
+        {
+          "weekStart": "2020-01-20",
+          "weekEnd": "2020-01-26",
+          "actual": 848155.41
+        },
+        {
+          "weekStart": "2020-01-27",
+          "weekEnd": "2020-02-02",
+          "actual": 1793537.88
+        },
+        {
+          "weekStart": "2020-02-03",
+          "weekEnd": "2020-02-09",
+          "actual": 2051874.98
+        },
+        {
+          "weekStart": "2020-02-10",
+          "weekEnd": "2020-02-16",
+          "actual": 2568699.15
+        },
+        {
+          "weekStart": "2020-02-17",
+          "weekEnd": "2020-02-23",
+          "actual": 1682539.2
+        },
+        {
+          "weekStart": "2020-02-24",
+          "weekEnd": "2020-03-01",
+          "actual": 1655289.37
+        },
+        {
+          "weekStart": "2020-03-02",
+          "weekEnd": "2020-03-08",
+          "actual": 2476833.62
+        }
+      ],
+      "totals": {
+        "predicted": 2220460.43,
+        "lower": 1646109.8,
+        "upper": 3247883.34
+      },
+      "comparison": [
+        {
+          "model": "due_date_schedule",
+          "mae": 2553733.74,
+          "rmse": 2893573.71,
+          "wape": 0.857274,
+          "folds": 26,
+          "holdoutWape": 0.737219
+        },
+        {
+          "model": "seasonal_naive",
+          "mae": 1059139.66,
+          "rmse": 1357167.72,
+          "wape": 0.355547,
+          "folds": 26,
+          "holdoutWape": 0.928784
+        },
+        {
+          "model": "xgboost_weekly",
+          "mae": 1024376.36,
+          "rmse": 1321556.0,
+          "wape": 0.343877,
+          "folds": 26,
+          "holdoutWape": 0.607952
+        },
+        {
+          "model": "xgboost_daily",
+          "mae": 1035202.28,
+          "rmse": 1284283.19,
+          "wape": 0.347511,
+          "folds": 26,
+          "holdoutWape": 0.544086
+        },
+        {
+          "model": "ets",
+          "mae": 1048535.95,
+          "rmse": 1300970.23,
+          "wape": 0.351987,
+          "folds": 26,
+          "holdoutWape": 0.741919
+        },
+        {
+          "model": "arima",
+          "mae": 891342.6,
+          "rmse": 1157480.43,
+          "wape": 0.299219,
+          "folds": 26,
+          "holdoutWape": 0.635324
+        }
+      ],
+      "assumptions": [
+        "Weekly collection totals are the modelled forecast; daily values are derived estimates allocated by historical weekday shares.",
+        "USD and CAD are forecast independently; no FX conversion is applied.",
+        "Forecast origin is the last complete week; the horizon starts the next day.",
+        "Forecast values are nominal amounts in the invoice currency."
+      ],
+      "disclaimer": "Target is an invoice-clearance proxy: collections are approximated by invoice amounts dated at payment_date. The dataset has no payment ledger and no amount-received column, so partially settled invoices may over- or under-state cash actually received. These figures are not bank-verified cash inflow.",
+      "proxy": {
+        "payment_proxy": true,
+        "target_definition": "collection_proxy(date, currency) = SUM(invoice_amount) of invoices with invoice_status == 'paid' whose payment_date falls on that date, grouped by invoice_currency. Invoice-clearance proxy, not verified cash received.",
+        "requires_payment_ledger_for_verified_cash": true
+      }
+    },
+    "30": {
+      "currency": "CAD",
+      "frequency": "weekly",
+      "asOf": "2020-03-08",
+      "trainedThrough": "2020-03-08",
+      "generatedAt": "2026-11-15T11:29:32.140529+00:00",
+      "horizonDays": 30,
+      "isHistoricalSimulation": true,
+      "isReplay": false,
+      "dataPeriod": {
+        "start": "2019-01-03",
+        "end": "2020-03-13",
+        "lastCompleteWeek": "2020-03-02"
+      },
+      "model": {
+        "id": "cash-flow-cad",
+        "algorithm": "arima",
+        "version": "1.0.0",
+        "selection": "arima achieved weekly-path WAPE 0.2992 vs best baseline seasonal_naive 0.3555 (15.8% relative improvement) and beat it on >= 4 origins."
+      },
+      "weekly": [
+        {
+          "weekStart": "2020-03-09",
+          "weekEnd": "2020-03-15",
+          "predicted": 2220460.43,
+          "lower": 1646109.8,
+          "upper": 3247883.34,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-03-16",
+          "weekEnd": "2020-03-22",
+          "predicted": 2094599.38,
+          "lower": 1572609.13,
+          "upper": 3428264.35,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-03-23",
+          "weekEnd": "2020-03-29",
+          "predicted": 2094599.38,
+          "lower": 1582125.01,
+          "upper": 3650870.0,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-03-30",
+          "weekEnd": "2020-04-05",
+          "predicted": 2094599.38,
+          "lower": 1500409.73,
+          "upper": 3670865.09,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-04-06",
+          "weekEnd": "2020-04-12",
+          "predicted": 2094599.38,
+          "lower": 1467933.24,
+          "upper": 3655045.9,
+          "isPartial": true
+        }
+      ],
+      "daily": [
+        {
+          "date": "2020-03-09",
+          "estimated": 508979.62,
+          "lower": 377325.5,
+          "upper": 744488.13,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-10",
+          "estimated": 318881.33,
+          "lower": 236398.58,
+          "upper": 466430.01,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-11",
+          "estimated": 291020.89,
+          "lower": 215744.59,
+          "upper": 425678.33,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-12",
+          "estimated": 344234.86,
+          "lower": 255194.09,
+          "upper": 503514.79,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-13",
+          "estimated": 757292.99,
+          "lower": 561409.42,
+          "upper": 1107697.87,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-14",
+          "estimated": 50.74,
+          "lower": 37.62,
+          "upper": 74.22,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-15",
+          "estimated": 0.0,
+          "lower": 0.0,
+          "upper": 0.0,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-16",
+          "estimated": 480129.43,
+          "lower": 360477.49,
+          "upper": 785835.52,
+          "weekStart": "2020-03-16",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-17",
+          "estimated": 300806.37,
+          "lower": 225843.11,
+          "upper": 492334.61,
+          "weekStart": "2020-03-16",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-18",
+          "estimated": 274525.12,
+          "lower": 206111.35,
+          "upper": 449319.66,
+          "weekStart": "2020-03-16",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-19",
+          "estimated": 324722.8,
+          "lower": 243799.38,
+          "upper": 531479.0,
+          "weekStart": "2020-03-16",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-20",
+          "estimated": 714367.8,
+          "lower": 536341.86,
+          "upper": 1169217.21,
+          "weekStart": "2020-03-16",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-21",
+          "estimated": 47.87,
+          "lower": 35.94,
+          "upper": 78.35,
+          "weekStart": "2020-03-16",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-22",
+          "estimated": 0.0,
+          "lower": 0.0,
+          "upper": 0.0,
+          "weekStart": "2020-03-16",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-23",
+          "estimated": 480129.43,
+          "lower": 362658.74,
+          "upper": 836861.76,
+          "weekStart": "2020-03-23",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-24",
+          "estimated": 300806.37,
+          "lower": 227209.69,
+          "upper": 524303.1,
+          "weekStart": "2020-03-23",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-25",
+          "estimated": 274525.12,
+          "lower": 207358.53,
+          "upper": 478495.09,
+          "weekStart": "2020-03-23",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-26",
+          "estimated": 324722.8,
+          "lower": 245274.62,
+          "upper": 565989.24,
+          "weekStart": "2020-03-23",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-27",
+          "estimated": 714367.8,
+          "lower": 539587.27,
+          "upper": 1245137.37,
+          "weekStart": "2020-03-23",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-28",
+          "estimated": 47.87,
+          "lower": 36.16,
+          "upper": 83.43,
+          "weekStart": "2020-03-23",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-29",
+          "estimated": 0.0,
+          "lower": 0.0,
+          "upper": 0.0,
+          "weekStart": "2020-03-23",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-30",
+          "estimated": 480129.43,
+          "lower": 343927.76,
+          "upper": 841445.09,
+          "weekStart": "2020-03-30",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-31",
+          "estimated": 300806.37,
+          "lower": 215474.53,
+          "upper": 527174.61,
+          "weekStart": "2020-03-30",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-01",
+          "estimated": 274525.12,
+          "lower": 196648.66,
+          "upper": 481115.72,
+          "weekStart": "2020-03-30",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-02",
+          "estimated": 324722.8,
+          "lower": 232606.41,
+          "upper": 569089.05,
+          "weekStart": "2020-03-30",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-03",
+          "estimated": 714367.8,
+          "lower": 511718.09,
+          "upper": 1251956.74,
+          "weekStart": "2020-03-30",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-04",
+          "estimated": 47.87,
+          "lower": 34.29,
+          "upper": 83.89,
+          "weekStart": "2020-03-30",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-05",
+          "estimated": 0.0,
+          "lower": 0.0,
+          "upper": 0.0,
+          "weekStart": "2020-03-30",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-06",
+          "estimated": 480129.43,
+          "lower": 336483.41,
+          "upper": 837818.97,
+          "weekStart": "2020-04-06",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-07",
+          "estimated": 300806.37,
+          "lower": 210810.56,
+          "upper": 524902.81,
+          "weekStart": "2020-04-06",
+          "isEstimate": true
+        }
+      ],
+      "historical": [
+        {
+          "weekStart": "2019-09-09",
+          "weekEnd": "2019-09-15",
+          "actual": 3899575.87
+        },
+        {
+          "weekStart": "2019-09-16",
+          "weekEnd": "2019-09-22",
+          "actual": 2311985.87
+        },
+        {
+          "weekStart": "2019-09-23",
+          "weekEnd": "2019-09-29",
+          "actual": 2723136.03
+        },
+        {
+          "weekStart": "2019-09-30",
+          "weekEnd": "2019-10-06",
+          "actual": 2362174.49
+        },
+        {
+          "weekStart": "2019-10-07",
+          "weekEnd": "2019-10-13",
+          "actual": 3645507.13
+        },
+        {
+          "weekStart": "2019-10-14",
+          "weekEnd": "2019-10-20",
+          "actual": 4221150.28
+        },
+        {
+          "weekStart": "2019-10-21",
+          "weekEnd": "2019-10-27",
+          "actual": 3517206.61
+        },
+        {
+          "weekStart": "2019-10-28",
+          "weekEnd": "2019-11-03",
+          "actual": 4486305.36
+        },
+        {
+          "weekStart": "2019-11-04",
+          "weekEnd": "2019-11-10",
+          "actual": 3480765.54
+        },
+        {
+          "weekStart": "2019-11-11",
+          "weekEnd": "2019-11-17",
+          "actual": 2927284.7
+        },
+        {
+          "weekStart": "2019-11-18",
+          "weekEnd": "2019-11-24",
+          "actual": 2734646.02
+        },
+        {
+          "weekStart": "2019-11-25",
+          "weekEnd": "2019-12-01",
+          "actual": 3873932.65
+        },
+        {
+          "weekStart": "2019-12-02",
+          "weekEnd": "2019-12-08",
+          "actual": 2603317.12
+        },
+        {
+          "weekStart": "2019-12-09",
+          "weekEnd": "2019-12-15",
+          "actual": 3571436.03
+        },
+        {
+          "weekStart": "2019-12-16",
+          "weekEnd": "2019-12-22",
+          "actual": 5466456.36
+        },
+        {
+          "weekStart": "2019-12-23",
+          "weekEnd": "2019-12-29",
+          "actual": 5249515.65
+        },
+        {
+          "weekStart": "2019-12-30",
+          "weekEnd": "2020-01-05",
+          "actual": 1462343.4
+        },
+        {
+          "weekStart": "2020-01-06",
+          "weekEnd": "2020-01-12",
+          "actual": 0.0
+        },
+        {
+          "weekStart": "2020-01-13",
+          "weekEnd": "2020-01-19",
+          "actual": 1320270.06
+        },
+        {
+          "weekStart": "2020-01-20",
+          "weekEnd": "2020-01-26",
+          "actual": 848155.41
+        },
+        {
+          "weekStart": "2020-01-27",
+          "weekEnd": "2020-02-02",
+          "actual": 1793537.88
+        },
+        {
+          "weekStart": "2020-02-03",
+          "weekEnd": "2020-02-09",
+          "actual": 2051874.98
+        },
+        {
+          "weekStart": "2020-02-10",
+          "weekEnd": "2020-02-16",
+          "actual": 2568699.15
+        },
+        {
+          "weekStart": "2020-02-17",
+          "weekEnd": "2020-02-23",
+          "actual": 1682539.2
+        },
+        {
+          "weekStart": "2020-02-24",
+          "weekEnd": "2020-03-01",
+          "actual": 1655289.37
+        },
+        {
+          "weekStart": "2020-03-02",
+          "weekEnd": "2020-03-08",
+          "actual": 2476833.62
+        }
+      ],
+      "totals": {
+        "predicted": 9285194.4,
+        "lower": 8426075.83,
+        "upper": 13698592.71
+      },
+      "comparison": [
+        {
+          "model": "due_date_schedule",
+          "mae": 2553733.74,
+          "rmse": 2893573.71,
+          "wape": 0.857274,
+          "folds": 26,
+          "holdoutWape": 0.737219
+        },
+        {
+          "model": "seasonal_naive",
+          "mae": 1059139.66,
+          "rmse": 1357167.72,
+          "wape": 0.355547,
+          "folds": 26,
+          "holdoutWape": 0.928784
+        },
+        {
+          "model": "xgboost_weekly",
+          "mae": 1024376.36,
+          "rmse": 1321556.0,
+          "wape": 0.343877,
+          "folds": 26,
+          "holdoutWape": 0.607952
+        },
+        {
+          "model": "xgboost_daily",
+          "mae": 1035202.28,
+          "rmse": 1284283.19,
+          "wape": 0.347511,
+          "folds": 26,
+          "holdoutWape": 0.544086
+        },
+        {
+          "model": "ets",
+          "mae": 1048535.95,
+          "rmse": 1300970.23,
+          "wape": 0.351987,
+          "folds": 26,
+          "holdoutWape": 0.741919
+        },
+        {
+          "model": "arima",
+          "mae": 891342.6,
+          "rmse": 1157480.43,
+          "wape": 0.299219,
+          "folds": 26,
+          "holdoutWape": 0.635324
+        }
+      ],
+      "assumptions": [
+        "Weekly collection totals are the modelled forecast; daily values are derived estimates allocated by historical weekday shares.",
+        "USD and CAD are forecast independently; no FX conversion is applied.",
+        "Forecast origin is the last complete week; the horizon starts the next day.",
+        "Forecast values are nominal amounts in the invoice currency."
+      ],
+      "disclaimer": "Target is an invoice-clearance proxy: collections are approximated by invoice amounts dated at payment_date. The dataset has no payment ledger and no amount-received column, so partially settled invoices may over- or under-state cash actually received. These figures are not bank-verified cash inflow.",
+      "proxy": {
+        "payment_proxy": true,
+        "target_definition": "collection_proxy(date, currency) = SUM(invoice_amount) of invoices with invoice_status == 'paid' whose payment_date falls on that date, grouped by invoice_currency. Invoice-clearance proxy, not verified cash received.",
+        "requires_payment_ledger_for_verified_cash": true
+      }
+    },
+    "90": {
+      "currency": "CAD",
+      "frequency": "weekly",
+      "asOf": "2020-03-08",
+      "trainedThrough": "2020-03-08",
+      "generatedAt": "2026-11-15T11:29:32.140990+00:00",
+      "horizonDays": 90,
+      "isHistoricalSimulation": true,
+      "isReplay": false,
+      "dataPeriod": {
+        "start": "2019-01-03",
+        "end": "2020-03-13",
+        "lastCompleteWeek": "2020-03-02"
+      },
+      "model": {
+        "id": "cash-flow-cad",
+        "algorithm": "arima",
+        "version": "1.0.0",
+        "selection": "arima achieved weekly-path WAPE 0.2992 vs best baseline seasonal_naive 0.3555 (15.8% relative improvement) and beat it on >= 4 origins."
+      },
+      "weekly": [
+        {
+          "weekStart": "2020-03-09",
+          "weekEnd": "2020-03-15",
+          "predicted": 2220460.43,
+          "lower": 1646109.8,
+          "upper": 3247883.34,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-03-16",
+          "weekEnd": "2020-03-22",
+          "predicted": 2094599.38,
+          "lower": 1572609.13,
+          "upper": 3428264.35,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-03-23",
+          "weekEnd": "2020-03-29",
+          "predicted": 2094599.38,
+          "lower": 1582125.01,
+          "upper": 3650870.0,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-03-30",
+          "weekEnd": "2020-04-05",
+          "predicted": 2094599.38,
+          "lower": 1500409.73,
+          "upper": 3670865.09,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-04-06",
+          "weekEnd": "2020-04-12",
+          "predicted": 2094599.38,
+          "lower": 1467933.24,
+          "upper": 3655045.9,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-04-13",
+          "weekEnd": "2020-04-19",
+          "predicted": 2094599.38,
+          "lower": 1066129.39,
+          "upper": 3671162.81,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-04-20",
+          "weekEnd": "2020-04-26",
+          "predicted": 2094599.38,
+          "lower": 578103.6,
+          "upper": 3669932.33,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-04-27",
+          "weekEnd": "2020-05-03",
+          "predicted": 2094599.38,
+          "lower": 588962.04,
+          "upper": 3677753.08,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-05-04",
+          "weekEnd": "2020-05-10",
+          "predicted": 2094599.38,
+          "lower": 593944.05,
+          "upper": 3680061.27,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-05-11",
+          "weekEnd": "2020-05-17",
+          "predicted": 2094599.38,
+          "lower": 613352.12,
+          "upper": 3668473.65,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-05-18",
+          "weekEnd": "2020-05-24",
+          "predicted": 2094599.38,
+          "lower": 628302.43,
+          "upper": 3667445.36,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-05-25",
+          "weekEnd": "2020-05-31",
+          "predicted": 2094599.38,
+          "lower": 664755.67,
+          "upper": 3653145.78,
+          "isPartial": false
+        },
+        {
+          "weekStart": "2020-06-01",
+          "weekEnd": "2020-06-07",
+          "predicted": 2094599.38,
+          "lower": 683828.98,
+          "upper": 3643657.67,
+          "isPartial": true
+        }
+      ],
+      "daily": [
+        {
+          "date": "2020-03-09",
+          "estimated": 508979.62,
+          "lower": 377325.5,
+          "upper": 744488.13,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-10",
+          "estimated": 318881.33,
+          "lower": 236398.58,
+          "upper": 466430.01,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-11",
+          "estimated": 291020.89,
+          "lower": 215744.59,
+          "upper": 425678.33,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-12",
+          "estimated": 344234.86,
+          "lower": 255194.09,
+          "upper": 503514.79,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-13",
+          "estimated": 757292.99,
+          "lower": 561409.42,
+          "upper": 1107697.87,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-14",
+          "estimated": 50.74,
+          "lower": 37.62,
+          "upper": 74.22,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-15",
+          "estimated": 0.0,
+          "lower": 0.0,
+          "upper": 0.0,
+          "weekStart": "2020-03-09",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-16",
+          "estimated": 480129.43,
+          "lower": 360477.49,
+          "upper": 785835.52,
+          "weekStart": "2020-03-16",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-17",
+          "estimated": 300806.37,
+          "lower": 225843.11,
+          "upper": 492334.61,
+          "weekStart": "2020-03-16",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-18",
+          "estimated": 274525.12,
+          "lower": 206111.35,
+          "upper": 449319.66,
+          "weekStart": "2020-03-16",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-19",
+          "estimated": 324722.8,
+          "lower": 243799.38,
+          "upper": 531479.0,
+          "weekStart": "2020-03-16",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-20",
+          "estimated": 714367.8,
+          "lower": 536341.86,
+          "upper": 1169217.21,
+          "weekStart": "2020-03-16",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-21",
+          "estimated": 47.87,
+          "lower": 35.94,
+          "upper": 78.35,
+          "weekStart": "2020-03-16",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-22",
+          "estimated": 0.0,
+          "lower": 0.0,
+          "upper": 0.0,
+          "weekStart": "2020-03-16",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-23",
+          "estimated": 480129.43,
+          "lower": 362658.74,
+          "upper": 836861.76,
+          "weekStart": "2020-03-23",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-24",
+          "estimated": 300806.37,
+          "lower": 227209.69,
+          "upper": 524303.1,
+          "weekStart": "2020-03-23",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-25",
+          "estimated": 274525.12,
+          "lower": 207358.53,
+          "upper": 478495.09,
+          "weekStart": "2020-03-23",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-26",
+          "estimated": 324722.8,
+          "lower": 245274.62,
+          "upper": 565989.24,
+          "weekStart": "2020-03-23",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-27",
+          "estimated": 714367.8,
+          "lower": 539587.27,
+          "upper": 1245137.37,
+          "weekStart": "2020-03-23",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-28",
+          "estimated": 47.87,
+          "lower": 36.16,
+          "upper": 83.43,
+          "weekStart": "2020-03-23",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-29",
+          "estimated": 0.0,
+          "lower": 0.0,
+          "upper": 0.0,
+          "weekStart": "2020-03-23",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-30",
+          "estimated": 480129.43,
+          "lower": 343927.76,
+          "upper": 841445.09,
+          "weekStart": "2020-03-30",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-03-31",
+          "estimated": 300806.37,
+          "lower": 215474.53,
+          "upper": 527174.61,
+          "weekStart": "2020-03-30",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-01",
+          "estimated": 274525.12,
+          "lower": 196648.66,
+          "upper": 481115.72,
+          "weekStart": "2020-03-30",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-02",
+          "estimated": 324722.8,
+          "lower": 232606.41,
+          "upper": 569089.05,
+          "weekStart": "2020-03-30",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-03",
+          "estimated": 714367.8,
+          "lower": 511718.09,
+          "upper": 1251956.74,
+          "weekStart": "2020-03-30",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-04",
+          "estimated": 47.87,
+          "lower": 34.29,
+          "upper": 83.89,
+          "weekStart": "2020-03-30",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-05",
+          "estimated": 0.0,
+          "lower": 0.0,
+          "upper": 0.0,
+          "weekStart": "2020-03-30",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-06",
+          "estimated": 480129.43,
+          "lower": 336483.41,
+          "upper": 837818.97,
+          "weekStart": "2020-04-06",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-07",
+          "estimated": 300806.37,
+          "lower": 210810.56,
+          "upper": 524902.81,
+          "weekStart": "2020-04-06",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-08",
+          "estimated": 274525.12,
+          "lower": 192392.18,
+          "upper": 479042.4,
+          "weekStart": "2020-04-06",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-09",
+          "estimated": 324722.8,
+          "lower": 227571.63,
+          "upper": 566636.63,
+          "weekStart": "2020-04-06",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-10",
+          "estimated": 714367.8,
+          "lower": 500641.91,
+          "upper": 1246561.57,
+          "weekStart": "2020-04-06",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-11",
+          "estimated": 47.87,
+          "lower": 33.55,
+          "upper": 83.53,
+          "weekStart": "2020-04-06",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-12",
+          "estimated": 0.0,
+          "lower": 0.0,
+          "upper": 0.0,
+          "weekStart": "2020-04-06",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-13",
+          "estimated": 480129.43,
+          "lower": 244380.91,
+          "upper": 841513.33,
+          "weekStart": "2020-04-13",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-14",
+          "estimated": 300806.37,
+          "lower": 153107.33,
+          "upper": 527217.36,
+          "weekStart": "2020-04-13",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-15",
+          "estimated": 274525.12,
+          "lower": 139730.44,
+          "upper": 481154.74,
+          "weekStart": "2020-04-13",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-16",
+          "estimated": 324722.8,
+          "lower": 165280.54,
+          "upper": 569135.21,
+          "weekStart": "2020-04-13",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-17",
+          "estimated": 714367.8,
+          "lower": 363605.81,
+          "upper": 1252058.27,
+          "weekStart": "2020-04-13",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-18",
+          "estimated": 47.87,
+          "lower": 24.36,
+          "upper": 83.9,
+          "weekStart": "2020-04-13",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-19",
+          "estimated": 0.0,
+          "lower": 0.0,
+          "upper": 0.0,
+          "weekStart": "2020-04-13",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-20",
+          "estimated": 480129.43,
+          "lower": 132514.39,
+          "upper": 841231.28,
+          "weekStart": "2020-04-20",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-21",
+          "estimated": 300806.37,
+          "lower": 83021.72,
+          "upper": 527040.65,
+          "weekStart": "2020-04-20",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-22",
+          "estimated": 274525.12,
+          "lower": 75768.17,
+          "upper": 480993.47,
+          "weekStart": "2020-04-20",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-23",
+          "estimated": 324722.8,
+          "lower": 89622.59,
+          "upper": 568944.45,
+          "weekStart": "2020-04-20",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-24",
+          "estimated": 714367.8,
+          "lower": 197163.52,
+          "upper": 1251638.62,
+          "weekStart": "2020-04-20",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-25",
+          "estimated": 47.87,
+          "lower": 13.21,
+          "upper": 83.87,
+          "weekStart": "2020-04-20",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-26",
+          "estimated": 0.0,
+          "lower": 0.0,
+          "upper": 0.0,
+          "weekStart": "2020-04-20",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-27",
+          "estimated": 480129.43,
+          "lower": 135003.39,
+          "upper": 843023.97,
+          "weekStart": "2020-04-27",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-28",
+          "estimated": 300806.37,
+          "lower": 84581.11,
+          "upper": 528163.8,
+          "weekStart": "2020-04-27",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-29",
+          "estimated": 274525.12,
+          "lower": 77191.31,
+          "upper": 482018.48,
+          "weekStart": "2020-04-27",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-04-30",
+          "estimated": 324722.8,
+          "lower": 91305.96,
+          "upper": 570156.89,
+          "weekStart": "2020-04-27",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-01",
+          "estimated": 714367.8,
+          "lower": 200866.82,
+          "upper": 1254305.9,
+          "weekStart": "2020-04-27",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-02",
+          "estimated": 47.87,
+          "lower": 13.46,
+          "upper": 84.05,
+          "weekStart": "2020-04-27",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-03",
+          "estimated": 0.0,
+          "lower": 0.0,
+          "upper": 0.0,
+          "weekStart": "2020-04-27",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-04",
+          "estimated": 480129.43,
+          "lower": 136145.37,
+          "upper": 843553.06,
+          "weekStart": "2020-05-04",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-05",
+          "estimated": 300806.37,
+          "lower": 85296.58,
+          "upper": 528495.28,
+          "weekStart": "2020-05-04",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-06",
+          "estimated": 274525.12,
+          "lower": 77844.27,
+          "upper": 482321.0,
+          "weekStart": "2020-05-04",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-07",
+          "estimated": 324722.8,
+          "lower": 92078.31,
+          "upper": 570514.72,
+          "weekStart": "2020-05-04",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-08",
+          "estimated": 714367.8,
+          "lower": 202565.94,
+          "upper": 1255093.11,
+          "weekStart": "2020-05-04",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-09",
+          "estimated": 47.87,
+          "lower": 13.57,
+          "upper": 84.1,
+          "weekStart": "2020-05-04",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-10",
+          "estimated": 0.0,
+          "lower": 0.0,
+          "upper": 0.0,
+          "weekStart": "2020-05-04",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-11",
+          "estimated": 480129.43,
+          "lower": 140594.14,
+          "upper": 840896.91,
+          "weekStart": "2020-05-11",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-12",
+          "estimated": 300806.37,
+          "lower": 88083.78,
+          "upper": 526831.17,
+          "weekStart": "2020-05-11",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-13",
+          "estimated": 274525.12,
+          "lower": 80387.96,
+          "upper": 480802.29,
+          "weekStart": "2020-05-11",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-14",
+          "estimated": 324722.8,
+          "lower": 95087.12,
+          "upper": 568718.31,
+          "weekStart": "2020-05-11",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-15",
+          "estimated": 714367.8,
+          "lower": 209185.11,
+          "upper": 1251141.13,
+          "weekStart": "2020-05-11",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-16",
+          "estimated": 47.87,
+          "lower": 14.02,
+          "upper": 83.84,
+          "weekStart": "2020-05-11",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-17",
+          "estimated": 0.0,
+          "lower": 0.0,
+          "upper": 0.0,
+          "weekStart": "2020-05-11",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-18",
+          "estimated": 480129.43,
+          "lower": 144021.09,
+          "upper": 840661.21,
+          "weekStart": "2020-05-18",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-19",
+          "estimated": 300806.37,
+          "lower": 90230.8,
+          "upper": 526683.5,
+          "weekStart": "2020-05-18",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-20",
+          "estimated": 274525.12,
+          "lower": 82347.39,
+          "upper": 480667.51,
+          "weekStart": "2020-05-18",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-21",
+          "estimated": 324722.8,
+          "lower": 97404.84,
+          "upper": 568558.9,
+          "weekStart": "2020-05-18",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-22",
+          "estimated": 714367.8,
+          "lower": 214283.95,
+          "upper": 1250790.43,
+          "weekStart": "2020-05-18",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-23",
+          "estimated": 47.87,
+          "lower": 14.36,
+          "upper": 83.81,
+          "weekStart": "2020-05-18",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-24",
+          "estimated": 0.0,
+          "lower": 0.0,
+          "upper": 0.0,
+          "weekStart": "2020-05-18",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-25",
+          "estimated": 480129.43,
+          "lower": 152377.0,
+          "upper": 837383.42,
+          "weekStart": "2020-05-25",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-26",
+          "estimated": 300806.37,
+          "lower": 95465.86,
+          "upper": 524629.93,
+          "weekStart": "2020-05-25",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-27",
+          "estimated": 274525.12,
+          "lower": 87125.08,
+          "upper": 478793.36,
+          "weekStart": "2020-05-25",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-28",
+          "estimated": 324722.8,
+          "lower": 103056.14,
+          "upper": 566342.05,
+          "weekStart": "2020-05-25",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-29",
+          "estimated": 714367.8,
+          "lower": 226716.41,
+          "upper": 1245913.53,
+          "weekStart": "2020-05-25",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-30",
+          "estimated": 47.87,
+          "lower": 15.19,
+          "upper": 83.49,
+          "weekStart": "2020-05-25",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-05-31",
+          "estimated": 0.0,
+          "lower": 0.0,
+          "upper": 0.0,
+          "weekStart": "2020-05-25",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-06-01",
+          "estimated": 480129.43,
+          "lower": 156749.03,
+          "upper": 835208.53,
+          "weekStart": "2020-06-01",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-06-02",
+          "estimated": 300806.37,
+          "lower": 98204.99,
+          "upper": 523267.34,
+          "weekStart": "2020-06-01",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-06-03",
+          "estimated": 274525.12,
+          "lower": 89624.89,
+          "upper": 477549.82,
+          "weekStart": "2020-06-01",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-06-04",
+          "estimated": 324722.8,
+          "lower": 106013.05,
+          "upper": 564871.13,
+          "weekStart": "2020-06-01",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-06-05",
+          "estimated": 714367.8,
+          "lower": 233221.4,
+          "upper": 1242677.58,
+          "weekStart": "2020-06-01",
+          "isEstimate": true
+        },
+        {
+          "date": "2020-06-06",
+          "estimated": 47.87,
+          "lower": 15.63,
+          "upper": 83.27,
+          "weekStart": "2020-06-01",
+          "isEstimate": true
+        }
+      ],
+      "historical": [
+        {
+          "weekStart": "2019-09-09",
+          "weekEnd": "2019-09-15",
+          "actual": 3899575.87
+        },
+        {
+          "weekStart": "2019-09-16",
+          "weekEnd": "2019-09-22",
+          "actual": 2311985.87
+        },
+        {
+          "weekStart": "2019-09-23",
+          "weekEnd": "2019-09-29",
+          "actual": 2723136.03
+        },
+        {
+          "weekStart": "2019-09-30",
+          "weekEnd": "2019-10-06",
+          "actual": 2362174.49
+        },
+        {
+          "weekStart": "2019-10-07",
+          "weekEnd": "2019-10-13",
+          "actual": 3645507.13
+        },
+        {
+          "weekStart": "2019-10-14",
+          "weekEnd": "2019-10-20",
+          "actual": 4221150.28
+        },
+        {
+          "weekStart": "2019-10-21",
+          "weekEnd": "2019-10-27",
+          "actual": 3517206.61
+        },
+        {
+          "weekStart": "2019-10-28",
+          "weekEnd": "2019-11-03",
+          "actual": 4486305.36
+        },
+        {
+          "weekStart": "2019-11-04",
+          "weekEnd": "2019-11-10",
+          "actual": 3480765.54
+        },
+        {
+          "weekStart": "2019-11-11",
+          "weekEnd": "2019-11-17",
+          "actual": 2927284.7
+        },
+        {
+          "weekStart": "2019-11-18",
+          "weekEnd": "2019-11-24",
+          "actual": 2734646.02
+        },
+        {
+          "weekStart": "2019-11-25",
+          "weekEnd": "2019-12-01",
+          "actual": 3873932.65
+        },
+        {
+          "weekStart": "2019-12-02",
+          "weekEnd": "2019-12-08",
+          "actual": 2603317.12
+        },
+        {
+          "weekStart": "2019-12-09",
+          "weekEnd": "2019-12-15",
+          "actual": 3571436.03
+        },
+        {
+          "weekStart": "2019-12-16",
+          "weekEnd": "2019-12-22",
+          "actual": 5466456.36
+        },
+        {
+          "weekStart": "2019-12-23",
+          "weekEnd": "2019-12-29",
+          "actual": 5249515.65
+        },
+        {
+          "weekStart": "2019-12-30",
+          "weekEnd": "2020-01-05",
+          "actual": 1462343.4
+        },
+        {
+          "weekStart": "2020-01-06",
+          "weekEnd": "2020-01-12",
+          "actual": 0.0
+        },
+        {
+          "weekStart": "2020-01-13",
+          "weekEnd": "2020-01-19",
+          "actual": 1320270.06
+        },
+        {
+          "weekStart": "2020-01-20",
+          "weekEnd": "2020-01-26",
+          "actual": 848155.41
+        },
+        {
+          "weekStart": "2020-01-27",
+          "weekEnd": "2020-02-02",
+          "actual": 1793537.88
+        },
+        {
+          "weekStart": "2020-02-03",
+          "weekEnd": "2020-02-09",
+          "actual": 2051874.98
+        },
+        {
+          "weekStart": "2020-02-10",
+          "weekEnd": "2020-02-16",
+          "actual": 2568699.15
+        },
+        {
+          "weekStart": "2020-02-17",
+          "weekEnd": "2020-02-23",
+          "actual": 1682539.2
+        },
+        {
+          "weekStart": "2020-02-24",
+          "weekEnd": "2020-03-01",
+          "actual": 1655289.37
+        },
+        {
+          "weekStart": "2020-03-02",
+          "weekEnd": "2020-03-08",
+          "actual": 2476833.62
+        }
+      ],
+      "totals": {
+        "predicted": 27355653.11,
+        "lower": 22740719.33,
+        "upper": 35990564.62
+      },
+      "comparison": [
+        {
+          "model": "due_date_schedule",
+          "mae": 2553733.74,
+          "rmse": 2893573.71,
+          "wape": 0.857274,
+          "folds": 26,
+          "holdoutWape": 0.737219
+        },
+        {
+          "model": "seasonal_naive",
+          "mae": 1059139.66,
+          "rmse": 1357167.72,
+          "wape": 0.355547,
+          "folds": 26,
+          "holdoutWape": 0.928784
+        },
+        {
+          "model": "xgboost_weekly",
+          "mae": 1024376.36,
+          "rmse": 1321556.0,
+          "wape": 0.343877,
+          "folds": 26,
+          "holdoutWape": 0.607952
+        },
+        {
+          "model": "xgboost_daily",
+          "mae": 1035202.28,
+          "rmse": 1284283.19,
+          "wape": 0.347511,
+          "folds": 26,
+          "holdoutWape": 0.544086
+        },
+        {
+          "model": "ets",
+          "mae": 1048535.95,
+          "rmse": 1300970.23,
+          "wape": 0.351987,
+          "folds": 26,
+          "holdoutWape": 0.741919
+        },
+        {
+          "model": "arima",
+          "mae": 891342.6,
+          "rmse": 1157480.43,
+          "wape": 0.299219,
+          "folds": 26,
+          "holdoutWape": 0.635324
+        }
+      ],
+      "assumptions": [
+        "Weekly collection totals are the modelled forecast; daily values are derived estimates allocated by historical weekday shares.",
+        "USD and CAD are forecast independently; no FX conversion is applied.",
+        "Forecast origin is the last complete week; the horizon starts the next day.",
+        "Forecast values are nominal amounts in the invoice currency."
+      ],
+      "disclaimer": "Target is an invoice-clearance proxy: collections are approximated by invoice amounts dated at payment_date. The dataset has no payment ledger and no amount-received column, so partially settled invoices may over- or under-state cash actually received. These figures are not bank-verified cash inflow.",
+      "proxy": {
+        "payment_proxy": true,
+        "target_definition": "collection_proxy(date, currency) = SUM(invoice_amount) of invoices with invoice_status == 'paid' whose payment_date falls on that date, grouped by invoice_currency. Invoice-clearance proxy, not verified cash received.",
+        "requires_payment_ledger_for_verified_cash": true
+      }
+    }
+  }
+}

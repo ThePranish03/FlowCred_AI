@@ -1,4 +1,6 @@
 import type {
+  CashFlowForecastParams,
+  CashFlowForecastResponse,
   Customer,
   CustomerDetailResponse,
   CustomerListParams,
@@ -171,6 +173,28 @@ export async function getDatasets() {
   return fetchJson<DatasetsResponse>("datasets.json");
 }
 
+export async function getCashFlowForecast(
+  params: CashFlowForecastParams = {},
+): Promise<CashFlowForecastResponse> {
+  const currency = params.currency ?? "USD";
+  const horizon = params.horizon ?? 30;
+  const fixture = await fetchJson<Record<string, Record<string, CashFlowForecastResponse>>>("cashflow.json");
+  const bundle = fixture[currency]?.[String(horizon)];
+  if (!bundle) {
+    throw new IntegrationPendingError(
+      `No generated cash-flow demo fixture for ${currency} / ${horizon}d.`,
+    );
+  }
+  if (params.asOf && params.asOf !== bundle.asOf) {
+    // Replay at an arbitrary origin is served from the frozen artifact grid by
+    // the live backend; demo fixtures only carry the shipped forecast origin.
+    throw new IntegrationPendingError(
+      `Demo mode only serves the shipped forecast origin ${bundle.asOf}. Run the backend for asOf=${params.asOf}.`,
+    );
+  }
+  return bundle;
+}
+
 export async function getHealth(): Promise<HealthResponse> {
   const models = await Promise.all([
     fetchJson<ModelMetricsResponse>("model-metrics.json"),
@@ -178,7 +202,7 @@ export async function getHealth(): Promise<HealthResponse> {
     { id: "late-payment", status: "available", version: metrics.latePayment.version },
     { id: "payment-delay", status: "available", version: metrics.paymentDelay.version },
     { id: "clustering", status: "available", version: metrics.clustering.version },
-    { id: "cash-flow", status: "coming_soon", version: null },
+    { id: "cash-flow", status: "available", version: "1.0.0" },
   ]);
   return {
     status: "demo",

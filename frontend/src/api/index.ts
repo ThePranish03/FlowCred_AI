@@ -1,5 +1,7 @@
 import { API_MODE } from "@/lib/constants";
 import type {
+  CashFlowForecastParams,
+  CashFlowForecastResponse,
   CustomerDetailResponse,
   CustomerListParams,
   DashboardResponse,
@@ -73,6 +75,11 @@ export const api = {
 
   delay: (): Promise<DelayResponse> =>
     isDemo ? demo.getDelaySummary() : request({ url: "/delay-predictions/summary" }),
+
+  cashFlowForecast: (params: CashFlowForecastParams = {}): Promise<CashFlowForecastResponse> =>
+    isDemo
+      ? demo.getCashFlowForecast(params)
+      : request({ url: "/cash-flow/forecast", params }),
 
   modelMetrics: (): Promise<ModelMetricsResponse> =>
     isDemo ? demo.getModelMetrics() : request({ url: "/models/metrics" }),

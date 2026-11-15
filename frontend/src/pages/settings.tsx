@@ -100,7 +100,7 @@ const MISSING_INTEGRATIONS = [
   "POST /datasets/upload — server-side validation, storage and reprocessing",
   "Authentication and SSO — current role selection is a local demo, not an identity provider",
   "Scheduled report delivery and server-side report storage",
-  "Cash-flow forecasting model and endpoints",
+  "Persisted cash-flow run history and approval workflow (POST /cash-flow/runs requires admin or business owner)",
 ];
 
 function initials(name: string) {
@@ -922,23 +922,30 @@ VITE_API_BASE_URL=http://localhost:8000/api/v1`}
                     </CardContent>
                   </Card>
 
-                  <Card className="border-dashed">
+                  <Card>
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <CardTitle className="text-base">Cash-flow forecaster</CardTitle>
-                          <p className="text-xs text-muted-foreground">Planned capability · no model artifact supplied</p>
+                          <p className="text-xs text-muted-foreground">
+                            Weekly collection forecast · invoice-clearance proxy
+                          </p>
                         </div>
-                        <Badge variant="muted">Coming soon</Badge>
+                        <Badge variant="low">Available</Badge>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-3 text-[11px] leading-relaxed text-muted-foreground">
                       <p>
-                        No forecasting model or historical forecast output is included with the supplied artifacts. The
-                        frontend intentionally shows a Coming Soon state and does not fabricate a cash-flow projection.
+                        Model 4 forecasts weekly collections per currency with independent USD and CAD pipelines and
+                        derived daily estimates. Validation used chronological rolling-origin folds; MAPE is never
+                        reported because zero-collection periods exist.
+                      </p>
+                      <p>
+                        Forecasting readiness is reported separately from the three-model health gate, so a missing
+                        forecast artifact never degrades the core product.
                       </p>
                       <Button variant="outline" size="sm" asChild>
-                        <Link to="/cash-flow-forecast">View planned scope</Link>
+                        <Link to="/cash-flow-forecast">Open forecast dashboard</Link>
                       </Button>
                     </CardContent>
                   </Card>

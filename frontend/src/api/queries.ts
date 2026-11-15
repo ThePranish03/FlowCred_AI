@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { api } from "@/api";
-import type { CustomerListParams, InvoiceListParams } from "@/types";
+import type { CashFlowForecastParams, CustomerListParams, InvoiceListParams } from "@/types";
 
 export const queryKeys = {
   dashboard: ["dashboard"] as const,
@@ -16,6 +16,7 @@ export const queryKeys = {
   dataQuality: ["data-quality"] as const,
   datasets: ["datasets"] as const,
   health: ["health"] as const,
+  cashFlow: (params: CashFlowForecastParams) => ["cash-flow", params] as const,
   search: (query: string) => ["search", query] as const,
 };
 
@@ -93,6 +94,14 @@ export function useDatasets() {
 
 export function useHealth() {
   return useQuery({ queryKey: queryKeys.health, queryFn: api.health, staleTime: 60_000 });
+}
+
+export function useCashFlowForecast(params: CashFlowForecastParams = {}) {
+  return useQuery({
+    queryKey: queryKeys.cashFlow(params),
+    queryFn: () => api.cashFlowForecast(params),
+    staleTime: 5 * 60_000,
+  });
 }
 
 export function useGlobalSearch(query: string) {

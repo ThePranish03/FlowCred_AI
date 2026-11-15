@@ -370,13 +370,80 @@ export interface DelayResponse {
   disclaimer: string;
 }
 
+export interface CashFlowForecastWeek {
+  weekStart: string;
+  weekEnd: string;
+  predicted: number;
+  lower: number;
+  upper: number;
+  isPartial: boolean;
+}
+
+export interface CashFlowForecastDay {
+  date: string;
+  estimated: number;
+  lower: number;
+  upper: number;
+  weekStart: string;
+  isEstimate: boolean;
+}
+
+export interface CashFlowHistoricalWeek {
+  weekStart: string;
+  weekEnd: string;
+  actual: number;
+}
+
+export interface CashFlowComparisonRow {
+  model: string;
+  mae: number | null;
+  rmse: number | null;
+  wape: number | null;
+  folds: number | null;
+  holdoutWape: number | null;
+}
+
+export interface CashFlowForecastParams {
+  currency?: "USD" | "CAD";
+  horizon?: 7 | 30 | 90;
+  asOf?: string;
+}
+
+export interface CashFlowForecastResponse {
+  currency: "USD" | "CAD";
+  frequency: "weekly";
+  asOf: string;
+  trainedThrough: string;
+  generatedAt: string;
+  horizonDays: 7 | 30 | 90;
+  isHistoricalSimulation: boolean;
+  isReplay: boolean;
+  dataPeriod: { start: string; end: string; lastCompleteWeek: string };
+  model: {
+    id: string;
+    algorithm: string;
+    version: string | null;
+    selection: string | null;
+  };
+  weekly: CashFlowForecastWeek[];
+  daily: CashFlowForecastDay[];
+  historical: CashFlowHistoricalWeek[];
+  totals: { predicted: number; lower: number; upper: number };
+  comparison: CashFlowComparisonRow[];
+  assumptions: string[];
+  disclaimer: string;
+  proxy: {
+    payment_proxy: boolean;
+    target_definition: string | null;
+    requires_payment_ledger_for_verified_cash: boolean;
+  };
+}
+
 export interface FeatureImportanceItem {
   feature: string;
   label: string;
   importance: number;
-}
-
-export interface InsightsResponse {
+}export interface InsightsResponse {
   latePayment: {
     model: string;
     target: string;
