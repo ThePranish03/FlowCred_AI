@@ -5,6 +5,7 @@ import {
   Legend,
   Line,
   ResponsiveContainer,
+  ReferenceLine,
   Tooltip,
   XAxis,
   YAxis,
@@ -44,16 +45,6 @@ export function CashFlowForecastChart({
     band: null,
   }));
 
-  // Join the last historical point to the first forecast so the line is
-  // continuous instead of showing a visual gap.
-  if (rows.length && data.weekly.length) {
-    rows[rows.length - 1] = {
-      ...rows[rows.length - 1],
-      predicted: rows[rows.length - 1].actual,
-      band: null,
-    };
-  }
-
   for (const week of data.weekly) {
     rows.push({
       label: week.weekStart,
@@ -67,6 +58,14 @@ export function CashFlowForecastChart({
     <ResponsiveContainer width="100%" height={height}>
       <ComposedChart data={rows} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
         <CartesianGrid vertical={false} stroke={CHART_COLORS.grid} />
+        {data.weekly[0] ? (
+          <ReferenceLine
+            x={data.weekly[0].weekStart}
+            stroke={CHART_COLORS.axis}
+            strokeDasharray="3 3"
+            label={{ value: "Forecast period", position: "insideTopRight", fill: CHART_COLORS.axis, fontSize: 10 }}
+          />
+        ) : null}
         <XAxis
           dataKey="label"
           tickFormatter={(value: string) => formatShortDate(value)}

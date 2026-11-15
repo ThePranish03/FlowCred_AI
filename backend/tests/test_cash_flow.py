@@ -254,6 +254,27 @@ def test_payload_labels_historical_simulation_and_proxy(loaded_forecast):
     assert payload["proxy"]["requires_payment_ledger_for_verified_cash"] is True
 
 
+def test_shipped_usd_artifact_is_portable_and_matches_frozen_forecast():
+    """XGBoost pickled Boosters embed platform-specific RNG state
+    (dmlc/xgboost#12459); the shipped estimator must store portable UBJSON."""
+    import joblib
+    from pathlib import Path
+
+    artifact = joblib.load(
+        Path(__file__).resolve().parents[2] / "models" / "cash_flow_forecaster_usd.joblib"
+    )
+    frozen_state = artifact["estimator"].__getstate__()["_model"]
+    assert frozen_state["__portable_xgb__"] is True
+    assert isinstance(frozen_state["raw"], bytes)
+    assert artifact["estimator"]._model is not None
+
+    frozen = np.asarray(artifact["forecast_weekly"], dtype=float)
+    reproduced = np.asarray(
+        artifact["estimator"].predict(len(frozen)), dtype=float
+    )
+    np.testing.assert_array_equal(reproduced, frozen)
+
+
 def test_forecast_status_is_separate_from_core_model_health(monkeypatch):
     monkeypatch.setitem(F.FORECAST_STATUS, "USD", {"available": False, "error": "missing"})
     monkeypatch.setitem(F.FORECAST_STATUS, "CAD", {"available": False, "error": "missing"})

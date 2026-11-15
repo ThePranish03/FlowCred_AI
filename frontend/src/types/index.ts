@@ -414,6 +414,25 @@ export interface CashFlowComparisonRow {
   wape: number | null;
   folds: number | null;
   holdoutWape: number | null;
+  firstAsOf?: string | null;
+  lastAsOf?: string | null;
+  selected?: boolean;
+}
+
+export interface CashFlowHealthResponse {
+  status: "available" | "partial" | "unavailable" | "demo";
+  models: {
+    currency: "USD" | "CAD";
+    available: boolean;
+    algorithm?: string;
+    version?: string;
+    trained_through?: string;
+    frequency?: string;
+    error?: string;
+  }[];
+  persistence?: { status: "available" | "unavailable"; schemaReady: boolean };
+  metadata_loaded?: boolean;
+  timestamp?: string;
 }
 
 export interface CashFlowForecastParams {
@@ -429,7 +448,7 @@ export interface CashFlowForecastResponse {
   trainedThrough: string;
   generatedAt: string;
   horizonDays: 7 | 30 | 90;
-  isHistoricalSimulation: boolean;
+  isHistoricalSimulation: true;
   isReplay: boolean;
   dataPeriod: { start: string; end: string; lastCompleteWeek: string };
   model: {
@@ -443,6 +462,11 @@ export interface CashFlowForecastResponse {
   historical: CashFlowHistoricalWeek[];
   totals: { predicted: number; lower: number; upper: number };
   comparison: CashFlowComparisonRow[];
+  evaluation: {
+    trainingWeeklyObservations: number;
+    validation: { method: string; origins: number; from: string; through: string };
+    holdout: { method: string; origins: number; from: string; through: string };
+  };
   assumptions: string[];
   disclaimer: string;
   proxy: {

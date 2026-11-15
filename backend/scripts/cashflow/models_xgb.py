@@ -35,6 +35,37 @@ import pandas as pd
 
 from .harness import Forecaster, Series
 
+
+def _freeze_model(model: object) -> object:
+    """Replace a fitted XGBoost regressor with portable UBJSON bytes.
+
+    A pickled Booster embeds its ``std::mt19937`` state as platform-specific
+    text (decimal under libstdc++, hex under MSVC), so an artifact written on
+    Linux fails to unpickle on Windows with ``input stream corrupted`` and vice
+    versa (dmlc/xgboost#12459). The public model format carries no RNG state
+    and deserializes identically on every build.
+    """
+    if model is None or not hasattr(model, "get_booster"):
+        return model
+    return {
+        "__portable_xgb__": True,
+        "raw": bytes(model.get_booster().save_raw(raw_format="ubj")),
+        "params": model.get_params(),
+    }
+
+
+def _thaw_model(payload: object) -> object:
+    if not (isinstance(payload, dict) and payload.get("__portable_xgb__")):
+        return payload
+    from xgboost import Booster, XGBRegressor
+
+    booster = Booster()
+    booster.load_model(bytearray(payload["raw"]))
+    model = XGBRegressor(**payload["params"])
+    model._Booster = booster
+    return model
+
+
 # Conservative, fixed hyper-parameters. No tuning: with <=61 weekly rows a
 # search would fit the validation folds rather than the process.
 WEEKLY_PARAMS = dict(
@@ -176,6 +207,16 @@ class WeeklyDirectXGB(Forecaster):
         self._model = None
         self.fallback = False
 
+    def __getstate__(self) -> dict:
+        state = self.__dict__.copy()
+        state["_model"] = _freeze_model(state.get("_model"))
+        return state
+
+    def __setstate__(self, state: dict) -> None:
+        state = dict(state)
+        state["_model"] = _thaw_model(state.get("_model"))
+        self.__dict__.update(state)
+
     def fit(self, series: Series, origin: int) -> "WeeklyDirectXGB":
         from xgboost import XGBRegressor
 
@@ -233,6 +274,16 @@ class DailyRecursiveXGB(Forecaster):
         self._history: np.ndarray | None = None
         self._last_day: _dt.date | None = None
         self.fallback = False
+
+    def __getstate__(self) -> dict:
+        state = self.__dict__.copy()
+        state["_model"] = _freeze_model(state.get("_model"))
+        return state
+
+    def __setstate__(self, state: dict) -> None:
+        state = dict(state)
+        state["_model"] = _thaw_model(state.get("_model"))
+        self.__dict__.update(state)
 
     # -- feature construction ------------------------------------------------
     def _features(

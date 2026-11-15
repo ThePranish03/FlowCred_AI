@@ -113,6 +113,18 @@ def test_cash_flow_health_reports_200_when_available(forecast_loaded):
     assert response.json()["status"] == "available"
 
 
+def test_cash_flow_health_reports_partial_when_one_currency_is_missing(monkeypatch):
+    monkeypatch.setitem(forecasting.FORECAST_STATUS, "USD", {"available": False, "error": "missing"})
+    monkeypatch.setitem(
+        forecasting.FORECAST_STATUS, "CAD", {"available": True, "algorithm": "arima", "version": "1.0.0"}
+    )
+    response = TestClient(main.app).get("/api/v1/cash-flow/health")
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "partial"
+    assert {m["currency"]: m["available"] for m in payload["models"]} == {"USD": False, "CAD": True}
+
+
 def test_missing_forecast_artifact_does_not_degrade_core_health(monkeypatch):
     """The three-model gate must stay green even with no forecasting artifact."""
     monkeypatch.setattr(

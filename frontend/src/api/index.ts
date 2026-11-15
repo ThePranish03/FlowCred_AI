@@ -2,6 +2,7 @@ import { API_MODE } from "@/lib/constants";
 import type {
   CashFlowForecastParams,
   CashFlowForecastResponse,
+  CashFlowHealthResponse,
   CustomerDetailResponse,
   CustomerListParams,
   DashboardResponse,
@@ -117,10 +118,56 @@ export const api = {
   delay: (): Promise<DelayResponse> =>
     isDemo ? demo.getDelaySummary() : request({ url: "/delay-predictions/summary" }),
 
-  cashFlowForecast: (params: CashFlowForecastParams = {}): Promise<CashFlowForecastResponse> =>
-    isDemo
-      ? demo.getCashFlowForecast(params)
-      : request({ url: "/cash-flow/forecast", params }),
+  cashFlowForecast: async (params: CashFlowForecastParams = {}): Promise<CashFlowForecastResponse> => {
+    const body = isDemo
+      ? await demo.getCashFlowForecast(params)
+      : await request<CashFlowForecastResponse>({ url: "/cash-flow/forecast", params, timeout: 45_000 });
+    if (
+      !body ||
+      !["USD", "CAD"].includes(body.currency) ||
+      ![7, 30, 90].includes(body.horizonDays) ||
+      body.currency !== (params.currency ?? "USD") ||
+      body.horizonDays !== (params.horizon ?? 30) ||
+      body.isHistoricalSimulation !== true ||
+      body.frequency !== "weekly" ||
+      !Array.isArray(body.weekly) ||
+      body.weekly.length !== Math.ceil(body.horizonDays / 7) ||
+      body.weekly.some((row) => ![row.predicted, row.lower, row.upper].every(Number.isFinite) || row.lower > row.predicted || row.predicted > row.upper) ||
+      !Array.isArray(body.daily) ||
+      body.daily.length !== body.horizonDays ||
+      !Array.isArray(body.historical) ||
+      !Array.isArray(body.comparison) ||
+      !body.model?.algorithm ||
+      typeof body.trainedThrough !== "string" ||
+      !body.evaluation?.validation ||
+      !body.evaluation?.holdout ||
+      !body.totals ||
+      ![body.totals.predicted, body.totals.lower, body.totals.upper].every(Number.isFinite) ||
+      body.totals.lower > body.totals.predicted ||
+      body.totals.predicted > body.totals.upper ||
+      body.daily.some((row) => row.isEstimate !== true || ![row.estimated, row.lower, row.upper].every(Number.isFinite))
+    ) {
+      throw new Error("Cash-flow endpoint returned an invalid or non-historical forecast response.");
+    }
+    return body;
+  },
+
+  cashFlowHealth: async (signal?: AbortSignal): Promise<CashFlowHealthResponse> => {
+    if (isDemo) return demo.getCashFlowHealth();
+    const response = await http.get<CashFlowHealthResponse>("/cash-flow/health", {
+      signal,
+      timeout: 5_000,
+      validateStatus: (status) => status < 600,
+    });
+    const body = response.data;
+    if (!body || !["available", "partial", "unavailable"].includes(body.status) || !Array.isArray(body.models)) {
+      throw new Error("Cash-flow health endpoint returned an invalid response.");
+    }
+    if (response.status >= 500 && body.status !== "unavailable") {
+      throw new Error(`Cash-flow health check failed (${response.status}).`);
+    }
+    return body;
+  },
 
   modelMetrics: (): Promise<ModelMetricsResponse> =>
     isDemo ? demo.getModelMetrics() : request({ url: "/models/metrics" }),

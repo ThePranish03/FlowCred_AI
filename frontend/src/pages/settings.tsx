@@ -20,7 +20,7 @@ import {
   UserRound,
 } from "lucide-react";
 import { toast } from "sonner";
-import { useCapabilities, useHealth, useModelMetrics, useSessionStatus } from "@/api/queries";
+import { useCapabilities, useCashFlowForecast, useCashFlowHealth, useHealth, useModelMetrics, useSessionStatus } from "@/api/queries";
 import { PageHeader } from "@/components/common/page-header";
 import { InfoNote, SectionHeading } from "@/components/common/notes";
 import { ErrorState } from "@/components/common/states";
@@ -139,6 +139,9 @@ export default function SettingsPage() {
   const [tab, setTab] = useState<TabId>(tabFromUrl);
   useEffect(() => setTab(tabFromUrl), [tabFromUrl]);
   const connection = useHealth(tab === "api" || tab === "models");
+  const cashFlowHealth = useCashFlowHealth(tab === "api" || tab === "models");
+  const cashFlowProbe = useCashFlowForecast({ currency: "USD", horizon: 7 }, tab === "api");
+  const cashFlowCadProbe = useCashFlowForecast({ currency: "CAD", horizon: 7 }, tab === "api");
   const capabilities = useCapabilities(tab === "api");
   const accessToken = useAuthStore((state) => state.accessToken);
   const sessionStatus = useSessionStatus(tab === "api" && API_MODE === "live");
@@ -733,8 +736,12 @@ VITE_API_BASE_URL=http://localhost:8000/api/v1`}
                       <tbody>
                         {DEMO_ENDPOINTS.map((endpoint) => {
                           const capability = capabilities.data?.endpoints.find((item) => item.method === endpoint.method && item.path === endpoint.path);
-                          const status = API_MODE === "demo" ? "Demo only" : capabilities.isLoading || (capability?.authenticationRequired && accessToken && sessionStatus.isLoading) ? "Checking" : !capability?.implemented ? "Not implemented" : capability.authenticationRequired && (!accessToken || sessionStatus.isError) ? "Authentication required" : capability.authenticationRequired && !capability.roles.includes(sessionStatus.data?.role ?? user.role) ? "Permission denied" : connection.data?.status === "ok" ? "Available" : connection.data ? "Unavailable" : "Implemented";
-                          const tone = status === "Available" || status === "Demo only" ? "low" : status === "Checking" || status === "Implemented" ? "medium" : "high";
+                          const status = endpoint.path === "/cash-flow/health"
+                            ? API_MODE === "demo" ? "Demo only" : cashFlowHealth.isLoading ? "Checking" : cashFlowHealth.isError || cashFlowHealth.data?.status === "unavailable" ? "Unavailable" : cashFlowHealth.data?.status === "partial" ? "Partial" : "Available"
+                            : endpoint.path === "/cash-flow/forecast"
+                              ? API_MODE === "demo" ? "Demo only" : cashFlowProbe.isLoading ? "Checking" : cashFlowProbe.isError ? (cashFlowProbe.error as { status?: number }).status === 401 ? "Authentication required" : (cashFlowProbe.error as { status?: number }).status === 403 ? "Permission denied" : "Unavailable" : "Available"
+                              : API_MODE === "demo" ? "Demo only" : capabilities.isLoading || (capability?.authenticationRequired && accessToken && sessionStatus.isLoading) ? "Checking" : !capability?.implemented ? "Not implemented" : capability.authenticationRequired && (!accessToken || sessionStatus.isError) ? "Authentication required" : capability.authenticationRequired && !capability.roles.includes(sessionStatus.data?.role ?? user.role) ? "Permission denied" : connection.data?.status === "ok" ? "Available" : connection.data ? "Unavailable" : "Implemented";
+                          const tone = status === "Available" || status === "Demo only" ? "low" : status === "Checking" || status === "Implemented" || status === "Partial" ? "medium" : "high";
                           return (
                             <tr key={`${endpoint.method}-${endpoint.path}`} className="border-b border-border/70 last:border-0">
                               <td className="px-5 py-2.5">
@@ -759,7 +766,7 @@ VITE_API_BASE_URL=http://localhost:8000/api/v1`}
               </Card>
 
               <section className="space-y-3" aria-labelledby="api-model-status-heading">
-                <SectionHeading title="Model integrations" description="Readiness reported by the backend after loading and validating each saved estimator and preprocessing pipeline." />
+                <SectionHeading title="Model integrations" description="The three invoice-model states come from core health; currency-specific cash-flow states come from the independent cash-flow health route." />
                 <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                   {[
                     { id: "late-payment", name: "Late-payment classification", algorithm: "XGBoost Classifier" },
@@ -770,9 +777,35 @@ VITE_API_BASE_URL=http://localhost:8000/api/v1`}
                     const readiness = API_MODE === "demo" ? "Demo only" : state?.status === "available" ? "Ready" : state?.status ?? (connection.isError ? "Unavailable" : "Checking");
                     return <Card key={model.id}><CardContent className="space-y-2 p-4"><div className="flex items-start justify-between gap-2"><p className="text-sm font-semibold text-foreground">{model.name}</p><Badge variant={readiness === "Ready" ? "low" : readiness === "Demo only" || readiness === "Checking" ? "medium" : "high"}>{readiness}</Badge></div><p className="text-xs text-muted-foreground">{model.algorithm}</p>{API_MODE === "live" ? <><p className="text-[11px] text-muted-foreground">Loading status: {state?.loadingStatus ?? "Not reported"}</p><p className="text-[11px] text-muted-foreground">Version: {state?.version ?? "Not reported"}</p>{state?.lastLoadedAt ? <p className="text-[10px] text-muted-foreground">Loaded {formatDateTime(state.lastLoadedAt)}</p> : null}{state?.error ? <p className="text-[11px] text-risk-high">{state.error}</p> : null}</> : <p className="text-[11px] text-muted-foreground">Fixture metadata only; no live model status.</p>}</CardContent></Card>;
                   })}
-                  <Card><CardContent className="space-y-2 p-4"><div className="flex items-start justify-between gap-2"><p className="text-sm font-semibold text-foreground">Cash-flow forecasting</p><Badge variant="medium">Coming Soon</Badge></div><p className="text-xs text-muted-foreground">No verified forecasting artifact or endpoint is available.</p></CardContent></Card>
+                  {(["USD", "CAD"] as const).map((currency) => {
+                    const state = cashFlowHealth.data?.models.find((item) => item.currency === currency);
+                    const probe = currency === "USD" ? cashFlowProbe : cashFlowCadProbe;
+                    const readiness = API_MODE === "demo" ? "Demo fixture" : cashFlowHealth.isLoading ? "Checking" : state?.available ? "Artifact loaded" : "Unavailable";
+                    const forecastStatus = API_MODE === "demo" ? "Demo only" : probe.isLoading ? "Checking" : probe.isError ? (probe.error as { status?: number }).status === 401 ? "Authentication required" : (probe.error as { status?: number }).status === 403 ? "Permission denied" : "Unavailable" : "Available";
+                    return <Card key={currency}><CardContent className="space-y-2 p-4"><div className="flex items-start justify-between gap-2"><p className="text-sm font-semibold text-foreground">Cash-flow · {currency}</p><Badge variant={readiness === "Artifact loaded" ? "low" : readiness === "Checking" || readiness === "Demo fixture" ? "medium" : "high"}>{readiness}</Badge></div><p className="text-xs text-muted-foreground">{state?.algorithm ?? "Currency-specific saved model"} · v{state?.version ?? "—"}</p><p className="text-[11px] text-muted-foreground">GET /cash-flow/forecast: {forecastStatus}</p><p className="text-[11px] text-muted-foreground">Training cutoff: {state?.trained_through ?? "Not reported"}</p>{state?.error ? <p className="text-[11px] text-risk-high">{state.error}</p> : null}</CardContent></Card>;
+                  })}
                 </div>
               </section>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <SectionHeading title="Cash-flow service checks" description="Cash-flow readiness is independent of the core invoice-model health gate." />
+                </CardHeader>
+                <CardContent className="grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-lg border border-border p-3">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">GET /cash-flow/health</p>
+                    <p className="mt-1 text-sm font-medium text-foreground">{API_MODE === "demo" ? "Demo fixture" : cashFlowHealth.isLoading ? "Checking" : cashFlowHealth.isError || cashFlowHealth.data?.status === "unavailable" ? "Unavailable" : cashFlowHealth.data?.status === "partial" ? "Partial · one currency missing" : "Available"}</p>
+                  </div>
+                  <div className="rounded-lg border border-border p-3">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">GET /cash-flow/forecast</p>
+                    <p className="mt-1 text-sm font-medium text-foreground">{API_MODE === "demo" ? "Demo fixture" : cashFlowProbe.isLoading ? "Checking" : cashFlowProbe.isError ? (cashFlowProbe.error as { status?: number }).status === 401 ? "Authentication required" : (cashFlowProbe.error as { status?: number }).status === 403 ? "Permission denied" : "Unavailable" : "Available · USD probe"}</p>
+                  </div>
+                  <div className="rounded-lg border border-border p-3">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">Forecast database schema</p>
+                    <p className="mt-1 text-sm font-medium text-foreground">{API_MODE === "demo" ? "Not connected in demo" : cashFlowHealth.data?.persistence?.schemaReady === true ? "Available" : cashFlowHealth.data?.persistence?.schemaReady === false ? "Unavailable" : "Not verified"}</p>
+                  </div>
+                </CardContent>
+              </Card>
 
               <div className="grid gap-5 lg:grid-cols-2">
                 <Card>
@@ -977,13 +1010,13 @@ VITE_API_BASE_URL=http://localhost:8000/api/v1`}
                     </CardHeader>
                     <CardContent className="space-y-3 text-[11px] leading-relaxed text-muted-foreground">
                       <p>
-                        Model 4 forecasts weekly collections per currency with independent USD and CAD pipelines and
-                        derived daily estimates. Validation used chronological rolling-origin folds; MAPE is never
-                        reported because zero-collection periods exist.
+                        Model 4 is a historical invoice-clearance simulation, not a current business forecast. USD uses
+                        XGBoost and CAD uses ARIMA; weekly output is authoritative and daily figures are derived estimates.
+                        Training data ends on 13 March 2020.
                       </p>
                       <p>
-                        Forecasting readiness is reported separately from the three-model health gate, so a missing
-                        forecast artifact never degrades the core product.
+                        Each currency's saved artifact is checked separately. Forecast service readiness is reported
+                        independently from the three invoice-model health gate.
                       </p>
                       <Button variant="outline" size="sm" asChild>
                         <Link to="/cash-flow-forecast">Open forecast dashboard</Link>

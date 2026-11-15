@@ -9,7 +9,7 @@ import { AccessDenied } from "@/components/layout/access-denied";
 import { PageSkeleton } from "@/components/common/loading";
 import { useAuthStore } from "@/stores/auth";
 import { usePreferencesStore } from "@/stores/preferences";
-import { canAccessPath } from "@/lib/constants";
+import { canAccessPath, API_MODE } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 function ScrollToTop() {
@@ -52,7 +52,11 @@ export function AppLayout() {
               <span className="font-semibold text-foreground">FlowCred AI</span> · Explainable Accounts Receivable
               Intelligence
             </p>
-            <p>Demo fixtures generated from recorded model artifacts · No FX conversion applied</p>
+            <p>
+              {API_MODE === "demo"
+                ? "Demo fixtures generated from recorded model artifacts · No FX conversion applied"
+                : "Live backend responses · No FX conversion applied"}
+            </p>
           </div>
         </footer>
       </div>

@@ -24,9 +24,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useCashFlowForecast } from "@/api/queries";
-import type { CashFlowForecastResponse } from "@/types";
+import { useCashFlowForecast, useCashFlowHealth } from "@/api/queries";
 import { formatCurrency, formatDate, formatPercent, formatShortDate } from "@/lib/format";
+import { API_MODE } from "@/lib/constants";
 
 const HORIZONS = [7, 30, 90] as const;
 const ALGORITHM_LABELS: Record<string, string> = {
@@ -66,6 +66,17 @@ function describeError(error: unknown): { message: string; unauthorised: boolean
       unauthorised: false,
     };
   }
+  if (failure.status === 403) {
+    return { message: "Your account role does not have access to this forecast endpoint.", unauthorised: false };
+  }
+  if (!failure.status) {
+    return {
+      message:
+        failure.message ??
+        "The forecast service could not be reached. Check the connection and retry.",
+      unauthorised: false,
+    };
+  }
   return {
     message: failure.message ?? "The forecast could not be loaded.",
     unauthorised: false,
@@ -77,6 +88,8 @@ export default function CashFlowForecastPage() {
   const [horizon, setHorizon] = useState<(typeof HORIZONS)[number]>(30);
 
   const { data, isLoading, isError, error, refetch } = useCashFlowForecast({ currency, horizon });
+  const health = useCashFlowHealth();
+  const selectedModelStatus = health.data?.models.find((model) => model.currency === currency);
 
   const weeklyRows = useMemo(() => data?.weekly ?? [], [data]);
   const dailyRows = useMemo(() => data?.daily ?? [], [data]);
@@ -88,16 +101,25 @@ export default function CashFlowForecastPage() {
     <div className="space-y-5">
       <PageHeader
         eyebrow="Workspace"
-        title="Cash flow forecast"
-        description="Weekly collection forecast derived from historical invoice clearance, with derived daily estimates and chronological backtest evidence."
+        title="Cash Flow Forecast"
+        description="Replay historical invoice-clearance estimates built from past payment patterns. USD and CAD stay separate, with uncertainty ranges shown."
         actions={
-          data ? (
-            <Badge variant={data.isHistoricalSimulation ? "medium" : "low"}>
-              {data.isHistoricalSimulation ? "Historical simulation" : "Artifact forecast"}
+          <div className="flex flex-wrap gap-2">
+            <Badge variant={API_MODE === "demo" ? "accent" : selectedModelStatus?.available ? "low" : "high"}>
+              {API_MODE === "demo" ? "Demo fixture" : health.isLoading ? "Checking model" : selectedModelStatus?.available ? "Model artifact loaded" : "Model unavailable"}
             </Badge>
-          ) : null
+            <Badge variant="medium">Historical simulation</Badge>
+          </div>
         }
       />
+
+      <InfoNote variant="warning">
+        Historical simulation: this model was trained on invoice data ending 13 March 2020. Results are not a current
+        forecast based on your latest business transactions.{" "}
+        {API_MODE === "demo"
+          ? "Demo mode displays a recorded fixture, not a live model request."
+          : "Live mode requests a saved-model replay from the backend; the result is still historical."}
+      </InfoNote>
 
       <Card className="p-4 sm:p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -171,7 +193,7 @@ export default function CashFlowForecastPage() {
         <>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <KpiCard
-              label={`${horizonLabel} forecast`}
+              label="Simulated invoice clearances"
               value={formatCurrency(data?.totals.predicted, currency, true)}
               hint={data ? `Origin ${formatShortDate(data.asOf)}` : undefined}
               icon={CircleDollarSign}
@@ -179,17 +201,17 @@ export default function CashFlowForecastPage() {
               loading={isLoading}
             />
             <KpiCard
-              label="Interval low"
+              label="Lower estimate"
               value={formatCurrency(data?.totals.lower, currency, true)}
-              hint="Empirical backtest quantile"
+              hint="Empirical backtest interval · not a guarantee"
               icon={TriangleAlert}
               tone="warning"
               loading={isLoading}
             />
             <KpiCard
-              label="Interval high"
+              label="Upper estimate"
               value={formatCurrency(data?.totals.upper, currency, true)}
-              hint="Empirical backtest quantile"
+              hint="Empirical backtest interval · not a guarantee"
               icon={Gauge}
               tone="teal"
               loading={isLoading}
@@ -204,8 +226,8 @@ export default function CashFlowForecastPage() {
           </div>
 
           <ChartCard
-            title="Weekly collections and forecast"
-            description="Observed weekly clearance followed by the modelled forecast path. The band is the empirical backtest interval."
+            title="Observed history and simulated path"
+            description="Historical weekly clearance is shown separately from the saved-model replay. The shaded band is an empirical backtest interval."
             loading={isLoading}
             footer={
               data
@@ -225,7 +247,7 @@ export default function CashFlowForecastPage() {
               <CardHeader className="pb-3">
                 <SectionHeading
                   title="Model comparison"
-                  description="Chronological rolling-origin validation on identical folds. Lower WAPE is better."
+                  description={`Validation uses ${data?.evaluation.validation.origins ?? 26} rolling origins; holdout WAPE is from a separate ${data?.evaluation.holdout.origins ?? 12}-origin set. Lower WAPE is better.`}
                 />
               </CardHeader>
               <CardContent className="px-0 pb-2">
@@ -239,7 +261,8 @@ export default function CashFlowForecastPage() {
                         <TableHead className="text-right">MAE</TableHead>
                         <TableHead className="text-right">RMSE</TableHead>
                         <TableHead className="text-right">WAPE</TableHead>
-                        <TableHead className="text-right">Folds</TableHead>
+                        <TableHead className="text-right">Validation</TableHead>
+                        <TableHead className="text-right">Holdout WAPE</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -262,7 +285,11 @@ export default function CashFlowForecastPage() {
                             <TableCell className="text-right tabular">
                               {formatPercent(row.wape, true)}
                             </TableCell>
-                            <TableCell className="text-right tabular">{row.folds ?? "—"}</TableCell>
+                            <TableCell className="text-right tabular">
+                              {row.folds ? `${row.folds} origins` : "—"}
+                              {row.firstAsOf && row.lastAsOf ? <span className="mt-0.5 block text-[10px] text-muted-foreground">{row.firstAsOf} – {row.lastAsOf}</span> : null}
+                            </TableCell>
+                            <TableCell className="text-right tabular">{formatPercent(row.holdoutWape, true)}</TableCell>
                           </TableRow>
                         );
                       })}
@@ -302,6 +329,8 @@ export default function CashFlowForecastPage() {
                 <p className="border-t border-border pt-3">
                   {data?.model.selection ?? "Selection evidence is stored in the model metadata."}
                 </p>
+                {data ? <p>Training window: {data.dataPeriod.start} – {data.dataPeriod.end} · {data.evaluation.trainingWeeklyObservations} complete weekly observations.</p> : null}
+                {data ? <p>Validation: {data.evaluation.validation.origins} origins ({data.evaluation.validation.from} – {data.evaluation.validation.through}). Untouched holdout: {data.evaluation.holdout.origins} origins ({data.evaluation.holdout.from} – {data.evaluation.holdout.through}).</p> : null}
               </CardContent>
             </Card>
           </div>
@@ -358,9 +387,9 @@ export default function CashFlowForecastPage() {
           </Card>
 
           <InfoNote variant="warning">
-            <strong>Invoice-clearance proxy.</strong>{" "}
-            {(data as CashFlowForecastResponse | undefined)?.disclaimer ??
-              "Forecast values approximate collections from invoice amounts dated at payment date. They are not bank-verified cash receipts."}
+            <strong>Invoice-clearance proxy.</strong> Forecasts estimate invoice clearances from historical paid-invoice
+            amounts and payment dates. They are not verified bank receipts.
+            {data?.disclaimer ? <span className="mt-1.5 block">{data.disclaimer}</span> : null}
           </InfoNote>
 
           <Card>
@@ -382,6 +411,16 @@ export default function CashFlowForecastPage() {
                   </li>
                 ))}
               </ul>
+              <div className="mt-4 rounded-lg border border-border bg-muted/20 p-3.5 text-xs leading-relaxed text-muted-foreground">
+                <h3 className="font-semibold text-foreground">How to interpret this forecast</h3>
+                <ul className="mt-2 list-disc space-y-1.5 pl-4">
+                  <li>It estimates invoice clearances from historical paid-invoice patterns; it does not verify money received by a bank.</li>
+                  <li>Weekly predictions are the primary model output. Daily values are derived estimates and are labelled as such.</li>
+                  <li>The interval is an empirical range from backtest errors, not a guarantee.</li>
+                  <li>USD and CAD models run separately. No foreign-exchange conversion is applied.</li>
+                  <li>The 61 complete weekly observations cover 2019-01-03 through 2020-03-13; this is not a live 2026 forecast.</li>
+                </ul>
+              </div>
               <p className="mt-4 border-t border-border pt-3 text-xs leading-relaxed text-muted-foreground">
                 The dataset ends on 2020-03-13. This page shows a reproducible historical forecast, not a live 2026
                 projection. The core three-model health gate is reported separately from forecasting readiness.

@@ -21,6 +21,7 @@ export const queryKeys = {
   capabilities: ["capabilities"] as const,
   currentUser: ["current-user"] as const,
   cashFlow: (params: CashFlowForecastParams) => ["cash-flow", params] as const,
+  cashFlowHealth: ["cash-flow-health"] as const,
   search: (query: string) => ["search", query] as const,
 };
 
@@ -109,11 +110,23 @@ export function useSessionStatus(enabled = true) {
   return useQuery({ queryKey: queryKeys.currentUser, queryFn: api.currentUser, enabled: enabled && hasToken, staleTime: 60_000, retry: false });
 }
 
-export function useCashFlowForecast(params: CashFlowForecastParams = {}) {
+export function useCashFlowForecast(params: CashFlowForecastParams = {}, enabled = true) {
   return useQuery({
     queryKey: queryKeys.cashFlow(params),
     queryFn: () => api.cashFlowForecast(params),
+    enabled,
     staleTime: 5 * 60_000,
+  });
+}
+
+export function useCashFlowHealth(enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.cashFlowHealth,
+    queryFn: ({ signal }) => api.cashFlowHealth(signal),
+    enabled,
+    staleTime: 20_000,
+    refetchInterval: enabled ? 30_000 : false,
+    retry: false,
   });
 }
 

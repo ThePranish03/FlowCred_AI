@@ -1,6 +1,7 @@
 import type {
   CashFlowForecastParams,
   CashFlowForecastResponse,
+  CashFlowHealthResponse,
   Customer,
   CustomerDetailResponse,
   CustomerListParams,
@@ -192,7 +193,41 @@ export async function getCashFlowForecast(
       `Demo mode only serves the shipped forecast origin ${bundle.asOf}. Run the backend for asOf=${params.asOf}.`,
     );
   }
-  return bundle;
+  return {
+    ...bundle,
+    comparison: bundle.comparison.map((row) => ({
+      ...row,
+      selected: row.model === bundle.model.algorithm,
+      firstAsOf: "2019-06-16",
+      lastAsOf: "2019-12-08",
+    })),
+    evaluation: {
+      trainingWeeklyObservations: 61,
+      validation: { method: "Expanding rolling-origin validation", origins: 26, from: "2019-06-16", through: "2019-12-08" },
+      holdout: { method: "Separate untouched rolling-origin holdout", origins: 12, from: "2019-12-15", through: "2020-03-01" },
+    },
+  };
+}
+
+export async function getCashFlowHealth(): Promise<CashFlowHealthResponse> {
+  const fixture = await fetchJson<Record<string, Record<string, CashFlowForecastResponse>>>("cashflow.json");
+  const models = (["USD", "CAD"] as const).map((currency) => {
+    const model = fixture[currency]?.["7"]?.model;
+    return {
+      currency,
+      available: Boolean(model),
+      algorithm: model?.algorithm,
+      version: model?.version ?? undefined,
+      trained_through: fixture[currency]?.["7"]?.trainedThrough,
+      frequency: "W-MON",
+      ...(!model ? { error: "Demo fixture is missing for this currency." } : {}),
+    };
+  });
+  return {
+    status: "demo",
+    models,
+    metadata_loaded: models.every((model) => model.available),
+  };
 }
 
 export async function getHealth(): Promise<HealthResponse> {
@@ -202,7 +237,6 @@ export async function getHealth(): Promise<HealthResponse> {
     { id: "late-payment", status: "available", version: metrics.latePayment.version },
     { id: "payment-delay", status: "available", version: metrics.paymentDelay.version },
     { id: "clustering", status: "available", version: metrics.clustering.version },
-    { id: "cash-flow", status: "available", version: "1.0.0" },
   ]);
   return {
     status: "demo",

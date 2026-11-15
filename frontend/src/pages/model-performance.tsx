@@ -10,6 +10,7 @@ import {
   Layers,
   Target,
   TimerReset,
+  WalletCards,
 } from "lucide-react";
 import {
   Bar,
@@ -22,7 +23,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { useModelMetrics } from "@/api/queries";
+import { useCashFlowForecast, useCashFlowHealth, useModelMetrics } from "@/api/queries";
 import { PageHeader } from "@/components/common/page-header";
 import { KpiCard } from "@/components/common/kpi-card";
 import { ChartCard } from "@/components/common/chart-card";
@@ -39,18 +40,21 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CHART_COLORS, CLUSTER_COLORS } from "@/lib/constants";
+import { API_MODE, CHART_COLORS, CLUSTER_COLORS } from "@/lib/constants";
 import {
   formatDate,
   formatDelayShort,
   formatNumber,
   formatPercent,
+  formatCurrency,
 } from "@/lib/format";
 import type {
   ClusteringModelMetrics,
   ConfusionMatrix,
   LatePaymentModelMetrics,
   PaymentDelayModelMetrics,
+  CashFlowForecastResponse,
+  CashFlowHealthResponse,
 } from "@/types";
 
 function rangeLabel(range: string[] | undefined) {
@@ -631,6 +635,71 @@ function ClusteringPanel({ metrics }: { metrics: ClusteringModelMetrics }) {
   );
 }
 
+function CashFlowModelPanel({
+  health,
+  usd,
+  cad,
+}: {
+  health: ReturnType<typeof useCashFlowHealth>;
+  usd: ReturnType<typeof useCashFlowForecast>;
+  cad: ReturnType<typeof useCashFlowForecast>;
+}) {
+  const entries = [
+    { currency: "USD" as const, health: health.data?.models.find((model) => model.currency === "USD"), query: usd },
+    { currency: "CAD" as const, health: health.data?.models.find((model) => model.currency === "CAD"), query: cad },
+  ];
+  return (
+    <div className="space-y-4">
+      <InfoNote variant="warning">
+        <strong>Historical simulation only.</strong> Cash-flow performance describes saved invoice-clearance proxy artifacts trained on data ending 13 March 2020. It is not current-business forecasting. Time-series metrics are reported separately from invoice classification and regression metrics.
+      </InfoNote>
+      <div className="grid gap-4 lg:grid-cols-2">
+        {entries.map(({ currency, health: model, query }) => {
+          const forecast = query.data;
+          const selected = forecast?.comparison.find((row) => row.selected) ?? forecast?.comparison.find((row) => row.model === forecast.model.algorithm);
+          const status = API_MODE === "demo" ? "Demo fixture" : health.isLoading || query.isLoading ? "Checking" : query.isError || !model?.available ? "Unavailable" : "Artifact loaded";
+          return (
+            <Card key={currency}>
+              <CardHeader className="pb-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <CardTitle className="text-base">Cash-flow forecasting · {currency}</CardTitle>
+                    <p className="mt-1 text-xs text-muted-foreground">{forecast?.model.algorithm ?? model?.algorithm ?? "Currency-specific saved model"} · version {forecast?.model.version ?? model?.version ?? "—"}</p>
+                  </div>
+                  <Badge variant={status === "Artifact loaded" ? "low" : status === "Checking" || status === "Demo fixture" ? "medium" : "high"}>{status}</Badge>
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4 text-xs">
+                {query.isError ? <ErrorState title="Forecast artifact unavailable" description={query.error instanceof Error ? query.error.message : (query.error as { message?: string }).message ?? "The forecast endpoint did not return a usable historical simulation."} onRetry={() => void query.refetch()} /> : forecast ? (
+                  <>
+                    <dl className="grid gap-3 sm:grid-cols-2">
+                      <div><dt className="text-muted-foreground">Algorithm</dt><dd className="mt-0.5 font-medium text-foreground">{forecast.model.algorithm}</dd></div>
+                      <div><dt className="text-muted-foreground">Training cutoff</dt><dd className="mt-0.5 font-medium text-foreground">{forecast.trainedThrough}</dd></div>
+                      <div><dt className="text-muted-foreground">Training period</dt><dd className="mt-0.5 font-medium text-foreground">{forecast.dataPeriod.start} – {forecast.dataPeriod.end}</dd></div>
+                      <div><dt className="text-muted-foreground">Weekly observations</dt><dd className="mt-0.5 font-medium text-foreground">{forecast.evaluation.trainingWeeklyObservations}</dd></div>
+                    </dl>
+                    <div className="overflow-x-auto rounded-lg border border-border">
+                      <table className="w-full min-w-[430px] text-left text-[11px]">
+                        <thead className="bg-muted/40 text-muted-foreground"><tr><th className="px-3 py-2">Evaluation</th><th className="px-3 py-2 text-right">MAE</th><th className="px-3 py-2 text-right">RMSE</th><th className="px-3 py-2 text-right">WAPE</th></tr></thead>
+                        <tbody>
+                          <tr className="border-t border-border"><td className="px-3 py-2">Validation · {forecast.evaluation.validation.origins} origins</td><td className="px-3 py-2 text-right tabular">{formatCurrency(selected?.mae, currency, true)}</td><td className="px-3 py-2 text-right tabular">{formatCurrency(selected?.rmse, currency, true)}</td><td className="px-3 py-2 text-right tabular">{formatPercent(selected?.wape, true)}</td></tr>
+                          <tr className="border-t border-border"><td className="px-3 py-2">Untouched holdout · {forecast.evaluation.holdout.origins} origins</td><td className="px-3 py-2 text-right text-muted-foreground">Not recorded</td><td className="px-3 py-2 text-right text-muted-foreground">Not recorded</td><td className="px-3 py-2 text-right tabular">{formatPercent(selected?.holdoutWape, true)}</td></tr>
+                        </tbody>
+                      </table>
+                    </div>
+                    <p className="leading-relaxed text-muted-foreground">Validation: {forecast.evaluation.validation.from} – {forecast.evaluation.validation.through}. Holdout: {forecast.evaluation.holdout.from} – {forecast.evaluation.holdout.through}. These metrics evaluate weekly forecasts; they are not classification scores.</p>
+                  </>
+                ) : <p className="text-muted-foreground">{status === "Checking" ? "Checking model and forecast endpoint…" : model?.error ?? "No verified forecast response is available."}</p>}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+      <p className="text-[11px] leading-relaxed text-muted-foreground">USD uses the selected XGBoost daily-recursive-to-weekly artifact; CAD uses the selected ARIMA weekly artifact. Both share the recorded 26-origin rolling validation and a separate 12-origin holdout. Current API availability is reported independently for each currency.</p>
+    </div>
+  );
+}
+
 function MethodologyPanel() {
   return (
     <div className="grid gap-4 lg:grid-cols-2">
@@ -722,7 +791,10 @@ export default function ModelPerformancePage() {
   const { data, isLoading, isError, error, refetch } = useModelMetrics();
   const [searchParams, setSearchParams] = useSearchParams();
   const requested = searchParams.get("model") ?? "late-payment";
-  const tab = requested === "payment-delay" ? "delay" : requested === "clustering" ? "clustering" : requested === "methodology" ? "methodology" : "late";
+  const tab = requested === "payment-delay" ? "delay" : requested === "clustering" ? "clustering" : requested === "cash-flow" ? "cash-flow" : requested === "methodology" ? "methodology" : "late";
+  const cashFlowHealth = useCashFlowHealth(tab === "cash-flow");
+  const cashFlowUsd = useCashFlowForecast({ currency: "USD", horizon: 7 }, tab === "cash-flow");
+  const cashFlowCad = useCashFlowForecast({ currency: "CAD", horizon: 7 }, tab === "cash-flow");
 
   if (isLoading) return <PageSkeleton />;
   if (isError || !data) {
@@ -737,7 +809,7 @@ export default function ModelPerformancePage() {
 
   function handleTab(value: string) {
     const next = new URLSearchParams(searchParams);
-    next.set("model", value === "late" ? "late-payment" : value === "delay" ? "payment-delay" : value === "clustering" ? "clustering" : "methodology");
+    next.set("model", value === "late" ? "late-payment" : value === "delay" ? "payment-delay" : value === "clustering" ? "clustering" : value === "cash-flow" ? "cash-flow" : "methodology");
     setSearchParams(next, { replace: true });
   }
 
@@ -766,6 +838,14 @@ export default function ModelPerformancePage() {
       icon: Layers,
       value: "clustering",
     },
+    {
+      id: "cash-flow",
+      name: "Cash-flow forecasting",
+      algorithm: "USD XGBoost · CAD ARIMA",
+      metric: "Historical simulation · weekly time-series metrics",
+      icon: WalletCards,
+      value: "cash-flow",
+    },
   ];
 
   return (
@@ -773,7 +853,7 @@ export default function ModelPerformancePage() {
       <PageHeader
         eyebrow="Models & data"
         title="Model performance"
-        description="Recorded evaluation for the three production artifacts. Metrics describe historical, held-out test periods and are not guarantees of individual prediction accuracy."
+        description="Recorded evaluation for the three invoice models plus the independent cash-flow forecasting artifacts. Metrics are historical evidence, not guarantees of future accuracy."
         actions={
           <Button variant="outline" asChild>
             <Link to="/insights">
@@ -784,7 +864,7 @@ export default function ModelPerformancePage() {
         }
       />
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {summary.map((item) => {
           const active = tab === item.value;
           return (
@@ -814,6 +894,7 @@ export default function ModelPerformancePage() {
           <TabsTrigger value="late">Late-payment classifier</TabsTrigger>
           <TabsTrigger value="delay">Delay regressor</TabsTrigger>
           <TabsTrigger value="clustering">Customer segments</TabsTrigger>
+          <TabsTrigger value="cash-flow">Cash-flow · USD / CAD</TabsTrigger>
           <TabsTrigger value="methodology">Methodology</TabsTrigger>
         </TabsList>
 
@@ -825,6 +906,9 @@ export default function ModelPerformancePage() {
         </TabsContent>
         <TabsContent value="clustering">
           <ClusteringPanel metrics={data.clustering} />
+        </TabsContent>
+        <TabsContent value="cash-flow">
+          <CashFlowModelPanel health={cashFlowHealth} usd={cashFlowUsd} cad={cashFlowCad} />
         </TabsContent>
         <TabsContent value="methodology">
           <MethodologyPanel />

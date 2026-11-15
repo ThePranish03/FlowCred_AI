@@ -22,12 +22,21 @@ from __future__ import annotations
 import datetime as _dt
 import json
 import math
+import os
 import threading
 from pathlib import Path
 
 import pandas as pd
 
-MODEL_DIR = Path(__file__).resolve().parent.parent.parent / "models"
+# In the container the app is mounted at ``/srv/flowcred/app`` (no ``backend``
+# layer), so the repo-relative parents three deep do not point at ``models``.
+# Relative ``MODEL_DIR`` values in ``backend/.env`` are written relative to
+# ``backend/``; resolving them against the process cwd breaks when the app is
+# started from the repo root.
+_BACKEND_DIR = Path(__file__).resolve().parents[1]
+MODEL_DIR = Path(os.getenv("MODEL_DIR") or (_BACKEND_DIR.parent / "models"))
+if not MODEL_DIR.is_absolute():
+    MODEL_DIR = (_BACKEND_DIR / MODEL_DIR).resolve()
 
 ARTIFACT_PATHS: dict[str, Path] = {
     "USD": MODEL_DIR / "cash_flow_forecaster_usd.joblib",
@@ -154,9 +163,15 @@ def forecast_status() -> dict[str, object]:
         }
         for currency in CURRENCIES
     ]
-    available = all(m.get("available") for m in models)
+    available = [m for m in models if m.get("available")]
+    if len(available) == len(models):
+        state = "available"
+    elif available:
+        state = "partial"
+    else:
+        state = "unavailable"
     return {
-        "status": "available" if available else "unavailable",
+        "status": state,
         "models": models,
         "metadata_loaded": bool(_FORECAST_METADATA),
     }
@@ -432,6 +447,21 @@ def build_forecast_payload(
         "historical": historical_weeks(currency),
         "totals": totals,
         "comparison": _comparison_rows(currency),
+        "evaluation": {
+            "trainingWeeklyObservations": len(artifact.get("history_values", [])),
+            "validation": {
+                "method": "Expanding rolling-origin validation",
+                "origins": next((row.get("folds") for row in _comparison_rows(currency) if row.get("model") == artifact.get("algorithm")), 26),
+                "from": "2019-06-16",
+                "through": "2019-12-08",
+            },
+            "holdout": {
+                "method": "Separate untouched rolling-origin holdout",
+                "origins": 12,
+                "from": "2019-12-15",
+                "through": "2020-03-01",
+            },
+        },
         "assumptions": [
             "Weekly collection totals are the modelled forecast; daily values are "
             "derived estimates allocated by historical weekday shares.",
@@ -474,6 +504,9 @@ def _comparison_rows(currency: str) -> list[dict[str, object]]:
                 "wape": entry.get("wape"),
                 "folds": entry.get("folds"),
                 "holdoutWape": entry.get("holdout_wape"),
+                "firstAsOf": entry.get("first_as_of"),
+                "lastAsOf": entry.get("last_as_of"),
+                "selected": bool(entry.get("selected")),
             }
         )
     return rows

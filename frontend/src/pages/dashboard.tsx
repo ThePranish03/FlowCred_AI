@@ -10,7 +10,7 @@ import {
   ShieldAlert,
   Users,
 } from "lucide-react";
-import { useDashboard } from "@/api/queries";
+import { useCashFlowForecast, useDashboard } from "@/api/queries";
 import { PageHeader } from "@/components/common/page-header";
 import { KpiCard } from "@/components/common/kpi-card";
 import { ChartCard } from "@/components/common/chart-card";
@@ -26,7 +26,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { CHART_COLORS, RISK_CONFIG } from "@/lib/constants";
+import { CHART_COLORS, API_MODE, RISK_CONFIG } from "@/lib/constants";
 import {
   formatCurrency,
   formatDate,
@@ -39,6 +39,13 @@ import type { RiskInvoiceSummary } from "@/types";
 
 export default function DashboardPage() {
   const { data, isLoading, isError, error, refetch, isFetching } = useDashboard();
+  const cashFlowUsd = useCashFlowForecast({ currency: "USD", horizon: 30 });
+  const cashFlowCad = useCashFlowForecast({ currency: "CAD", horizon: 30 });
+  const cashFlowRows = [
+    { currency: "USD" as const, forecast: cashFlowUsd.data },
+    { currency: "CAD" as const, forecast: cashFlowCad.data },
+  ];
+  const showCashFlow = cashFlowRows.some((row) => row.forecast);
 
   if (isLoading) return <PageSkeleton />;
   if (isError || !data) {
@@ -165,6 +172,66 @@ export default function DashboardPage() {
         is {formatCurrency(0, "USD")}. Risk distributions describe scored historical invoices, not current open AR.{" "}
         {data.currencyNote}
       </InfoNote>
+
+      {showCashFlow ? (
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <CardTitle>Cash-flow replay · 30 days</CardTitle>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Invoice-clearance proxy from the saved USD and CAD artifacts. Historical simulation only — not current
+                  business cash flow.
+                </p>
+              </div>
+              <Badge variant={API_MODE === "demo" ? "accent" : "medium"}>
+                {API_MODE === "demo" ? "Demo fixture" : "Historical simulation"}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+              {cashFlowRows.map(({ currency, forecast }) => (
+                <div key={currency} className="rounded-lg border border-border/80 p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-sm font-medium text-foreground">{currency}</p>
+                    <span className="text-[11px] text-muted-foreground">{forecast?.model.algorithm ?? "Unavailable"}</span>
+                  </div>
+                  {forecast ? (
+                    <>
+                      <p className="mt-1 text-lg font-semibold tabular text-foreground">
+                        {formatCurrency(forecast.totals.predicted, currency, true)}
+                      </p>
+                      <p className="text-[11px] tabular text-muted-foreground">
+                        Range {formatCurrency(forecast.totals.lower, currency, true)} –{" "}
+                        {formatCurrency(forecast.totals.upper, currency, true)}
+                      </p>
+                      <p className="mt-1 text-[11px] text-muted-foreground">
+                        Origin {formatDate(forecast.asOf)} · trained through {formatDate(forecast.trainedThrough)}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="mt-1 text-[11px] text-muted-foreground">
+                      This currency's forecast artifact is unavailable; the other currency is unaffected.
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[11px] leading-relaxed text-muted-foreground">
+                Weekly totals are the model output; daily values are derived estimates. Not verified bank receipts.
+              </p>
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/cash-flow-forecast">
+                  Open forecast
+                  <ArrowUpRight className="h-3.5 w-3.5" />
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <div className="grid gap-4 lg:grid-cols-3">
         <ChartCard

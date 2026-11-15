@@ -23,7 +23,7 @@ from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
-from sqlalchemy import select, func, text, or_
+from sqlalchemy import inspect, select, func, text, or_
 from sqlalchemy.orm import Session
 
 from .auth import audit, hash_password, issue_pair, verify_password, current_user, allow_roles, ROLES
@@ -34,8 +34,12 @@ from . import forecasting
 _main_path = Path(__file__).resolve()
 ROOT = next((candidate for candidate in (_main_path.parents[2], _main_path.parents[1]) if (candidate / "frontend" / "public" / "demo-data").is_dir()), _main_path.parents[2])
 FRONTEND_DATA = ROOT / "frontend" / "public" / "demo-data"
-MODEL_DIR = Path(os.getenv("MODEL_DIR", str(ROOT / "models"))).resolve()
-DATA_DIR = Path(os.getenv("DATA_DIR", str(ROOT / "data"))).resolve()
+# Relative values in ``backend/.env`` are written relative to ``backend/``, not
+# to the process cwd, so the app behaves the same from the repo root or backend/.
+MODEL_DIR = Path(os.getenv("MODEL_DIR", str(ROOT / "models")))
+DATA_DIR = Path(os.getenv("DATA_DIR", str(ROOT / "data")))
+MODEL_DIR = (MODEL_DIR if MODEL_DIR.is_absolute() else _main_path.parents[1] / MODEL_DIR).resolve()
+DATA_DIR = (DATA_DIR if DATA_DIR.is_absolute() else _main_path.parents[1] / DATA_DIR).resolve()
 UPLOAD_DIR = DATA_DIR / "uploads"
 LOGGER = logging.getLogger("flowcred")
 logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"), format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -43,6 +47,11 @@ FIXTURES: dict[str, Any] = {}
 MODEL_STATUS: dict[str, dict[str, Any]] = {}
 MODEL_IDS = ("late-payment", "payment-delay", "clustering")
 ANALYTICS_ROLES = ("business_owner", "accountant")
+# "admin" is the bootstrap role that startup normalises to business_owner;
+# "collections" is its pre-rename alias. Reads accept all of them so legacy
+# tokens and freshly bootstrapped accounts are not locked out (POST stays
+# restricted to owners/admins).
+CASH_FLOW_READ_ROLES = ("admin", "business_owner", "accountant", "collection_user", "collections")
 INVOICES: list[dict[str, Any]] = []
 CUSTOMERS: list[dict[str, Any]] = []
 
@@ -446,21 +455,26 @@ def models_status():
         "clustering": ("Customer behaviour clustering", "K-Means"),
     }
     forecast = forecasting.forecast_status()
-    forecast_versions = [m.get("version") for m in forecast.get("models", []) if m.get("version")]
-    return {"models": [{
+    model_rows = [{
         "id": key, "name": specs[key][0], "algorithm": specs[key][1],
         "availability": MODEL_STATUS.get(key, {}).get("status", "unavailable"),
         "loadingStatus": "loaded" if MODEL_STATUS.get(key, {}).get("status") == "available" else "unavailable",
         "version": MODEL_STATUS.get(key, {}).get("version"),
         "lastLoadedAt": MODEL_STATUS.get(key, {}).get("lastLoadedAt"),
         **({"error": MODEL_STATUS[key]["error"]} if MODEL_STATUS.get(key, {}).get("error") else {}),
-    } for key in MODEL_IDS] + [{
-        "id": "cash-flow", "name": "Cash-flow forecasting", "algorithm": "Weekly currency-specific forecaster",
-        "availability": forecast.get("status", "unavailable"),
-        "loadingStatus": "loaded" if forecast.get("status") == "available" else "unavailable",
-        "version": ", ".join(map(str, forecast_versions)) or None,
-        "lastLoadedAt": None,
-    }]}
+    } for key in MODEL_IDS]
+    for model in forecast.get("models", []):
+        currency = model.get("currency")
+        model_rows.append({
+            "id": f"cash-flow-{str(currency).lower()}",
+            "name": f"Cash-flow forecasting · {currency}",
+            "algorithm": model.get("algorithm"),
+            "availability": "available" if model.get("available") else "unavailable",
+            "loadingStatus": "loaded" if model.get("available") else "unavailable",
+            "version": model.get("version"),
+            "lastLoadedAt": None,
+        })
+    return {"models": model_rows}
 
 
 @app.get("/api/v1/capabilities")
@@ -473,7 +487,7 @@ def capabilities():
         ("GET", "/insights", ("business_owner", "accountant")), ("GET", "/datasets/quality", ("business_owner", "accountant")),
         ("GET", "/datasets", ("business_owner", "accountant")), ("POST", "/datasets/scoring-jobs", ANALYTICS_ROLES), ("GET", "/datasets/scoring-jobs/{job_id}", ANALYTICS_ROLES), ("GET", "/search?q=", ANALYTICS_ROLES), ("GET", "/health", ()),
         ("POST", "/invoices/predict/late-payment", ANALYTICS_ROLES), ("POST", "/invoices/predict/payment-delay", ANALYTICS_ROLES), ("POST", "/datasets/upload", ("business_owner",)),
-        ("GET", "/cash-flow/health", ()), ("GET", "/cash-flow/forecast", ROLES), ("GET", "/cash-flow/runs", ROLES), ("POST", "/cash-flow/runs", ("admin", "business_owner")),
+        ("GET", "/cash-flow/health", ()), ("GET", "/cash-flow/forecast", CASH_FLOW_READ_ROLES), ("GET", "/cash-flow/runs", CASH_FLOW_READ_ROLES), ("POST", "/cash-flow/runs", ("admin", "business_owner")),
     ]
     registered = {(method, route.path) for route in app.routes for method in getattr(route, "methods", set())}
     rows = []
@@ -500,6 +514,11 @@ def _forecast_params(currency: str, horizon: int, as_of: str | None) -> tuple[st
         raise HTTPException(422, f"currency must be one of {list(forecasting.CURRENCIES)}")
     if horizon not in forecasting.HORIZONS:
         raise HTTPException(422, f"horizon must be one of {list(forecasting.HORIZONS)}")
+    if as_of:
+        try:
+            date.fromisoformat(as_of)
+        except ValueError as exc:
+            raise HTTPException(422, "asOf must be a valid ISO date (YYYY-MM-DD)") from exc
     return ccy, int(horizon), (as_of or None)
 
 
@@ -507,13 +526,27 @@ def _forecast_params(currency: str, horizon: int, as_of: str | None) -> tuple[st
 def cash_flow_health():
     """Forecast-only readiness. Independent of the three-model health gate."""
     status = forecasting.forecast_status()
-    payload = {"apiVersion": "v1", **status, "timestamp": datetime.now(timezone.utc).isoformat()}
-    if status["status"] != "available":
+    required_tables = {"cash_flow_forecast_runs", "cash_flow_forecast_points"}
+    try:
+        present_tables = set(inspect(engine).get_table_names())
+        persistence_ready = required_tables.issubset(present_tables)
+    except Exception:
+        persistence_ready = False
+    payload = {
+        "apiVersion": "v1",
+        **status,
+        "persistence": {
+            "status": "available" if persistence_ready else "unavailable",
+            "schemaReady": persistence_ready,
+        },
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+    if status["status"] == "unavailable":
         return JSONResponse(status_code=503, content=payload)
     return payload
 
 
-@app.get("/api/v1/cash-flow/forecast", dependencies=[Depends(allow_roles(*ROLES))])
+@app.get("/api/v1/cash-flow/forecast", dependencies=[Depends(allow_roles(*CASH_FLOW_READ_ROLES))])
 def cash_flow_forecast(
     currency: str = Query("USD"),
     horizon: int = Query(30),
@@ -529,7 +562,7 @@ def cash_flow_forecast(
         raise HTTPException(422, str(exc)) from exc
 
 
-@app.get("/api/v1/cash-flow/runs", dependencies=[Depends(allow_roles(*ROLES))])
+@app.get("/api/v1/cash-flow/runs", dependencies=[Depends(allow_roles(*CASH_FLOW_READ_ROLES))])
 def list_cash_flow_runs(currency: str | None = Query(None), limit: int = Query(20, ge=1, le=100), db: Session = Depends(get_db)):
     query = select(CashFlowForecastRun).order_by(CashFlowForecastRun.created_at.desc()).limit(limit)
     if currency:
