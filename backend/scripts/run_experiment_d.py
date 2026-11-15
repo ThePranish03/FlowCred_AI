@@ -262,7 +262,7 @@ def write_summary(verdicts: dict, results: pd.DataFrame) -> None:
             f"| {currency} | {v['production_reference_wape']} | {v['seasonal_naive_reference_wape']} |"
         )
 
-    lines += ["", "## Verdict", ""]
+    lines += ["", "## Verdict on the pretraining question", ""]
     for currency, v in verdicts.items():
         lines.append(
             f"* **{currency}: {v['verdict']}** — D1 vs D0 relative WAPE "
@@ -271,18 +271,41 @@ def write_summary(verdicts: dict, results: pd.DataFrame) -> None:
             f"stable across seeds: {v['stable_across_seeds']}."
         )
 
+    lines += ["", "## Does the MLP qualify for production? No.", ""]
+    lines += [
+        "The original rule requires a candidate to beat the best valid baseline by",
+        "at least 10% relative WAPE. The MLP was never close:",
+        "",
+        "| Currency | D1 (pretrained MLP) | Best reference | Gap | Qualifies |",
+        "|---|---:|---:|---:|---|",
+    ]
+    for currency, v in verdicts.items():
+        refs = [x for x in (v["production_reference_wape"], v["seasonal_naive_reference_wape"]) if x]
+        best = min(refs) if refs else float("nan")
+        gap = (v["d1_validation_wape"] - best) / best if best else float("nan")
+        qualifies = "yes" if v["d1_validation_wape"] <= best * 0.9 else "no"
+        lines.append(
+            f"| {currency} | {v['d1_validation_wape']:.4f} | {best:.4f} | "
+            f"{gap:+.1%} worse | **{qualifies}** |"
+        )
+    gains = ", ".join(
+        f"{v['relative_improvement']:.1%} ({c})" for c, v in verdicts.items()
+    )
+    hold = ", ".join(
+        f"{c} {v['d0_holdout_wape']:.4f} -> {v['d1_holdout_wape']:.4f}"
+        for c, v in verdicts.items()
+    )
     lines += [
         "",
-        "## Reading the result",
+        "So the answer is two-sided and both halves matter:",
         "",
-        "* The rule required all three of: ≥10% relative improvement, ≥4 origins,",
-        "  and `mean − 1 std` still better. Anything else is reported as no",
-        "  material change or worse.",
-        "* At early origins the real-only arm has as few as 11 training rows, so",
-        "  its weakness is data scarcity, not a tuning failure. Per-origin WAPE is",
-        "  in `experiment_d_per_origin.csv`.",
-        "* Synthetic weeks are simulated; they are a prior, not evidence about",
-        "  real collection behaviour.",
+        f"1. **Pretraining works.** Validation error falls by {gains}, and the",
+        f"   effect is seed-stable. Holdout: {hold}.",
+        "2. **The neural model still loses.** Even pretrained it remains worse than",
+        "   the best reference on every currency, so synthetic data closed the gap",
+        "   between two weak models without producing a competitive one.",
+        "",
+        "The MLP stays experimental and no production artifact changes.",
         "",
     ]
     (OUT / "experiment_d_SUMMARY.md").write_text("\n".join(lines), encoding="utf-8")

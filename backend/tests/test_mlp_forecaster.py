@@ -111,3 +111,27 @@ def test_pretrained_rejects_a_too_short_synthetic_series(real_series):
     tiny = _synthetic(n=4)
     with pytest.raises(ValueError):
         PretrainedMLP(tiny, seed=7).fit(real_series, 30)
+
+
+def test_forecast_is_bounded_and_does_not_explode(real_series):
+    """Regression guard for the recursive divergence seen in the pilot."""
+    from scripts.cashflow.models_mlp import MAX_RATIO
+
+    model = RealOnlyMLP(seed=13).fit(real_series, 30)
+    preds = model.predict(9)
+    base = float(np.mean(real_series.values[:31]))
+    assert preds.max() <= MAX_RATIO * base * 1.0001
+    assert preds.min() >= 0
+    # Steps must not compound: the last step cannot dwarf the first by orders.
+    assert preds.max() / max(preds.min(), 1e-9) < 100
+
+
+def test_pretrained_forecast_is_also_bounded(real_series):
+    from scripts.cashflow.models_mlp import MAX_RATIO
+
+    synth = _synthetic()
+    model = PretrainedMLP(synth, seed=42).fit(real_series, 30)
+    preds = model.predict(9)
+    base = float(np.mean(real_series.values[:31]))
+    assert np.all(np.isfinite(preds))
+    assert preds.max() <= MAX_RATIO * base * 1.0001
