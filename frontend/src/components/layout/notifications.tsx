@@ -30,10 +30,10 @@ const NOTIFICATIONS = [
   },
   {
     id: "cashflow",
-    title: "Cash-flow forecast unavailable",
-    description: "The supplied project has no trained forecasting artifact. The page shows planned scope only.",
+    title: "Cash-flow forecast is a historical simulation",
+    description: "Forecasts are bounded by an invoice-clearance proxy and a 2020-03-13 data cutoff, not live 2026 cash.",
     icon: WalletCards,
-    tone: "bg-muted text-muted-foreground",
+    tone: "bg-risk-medium-soft text-risk-medium",
   },
 ];
 

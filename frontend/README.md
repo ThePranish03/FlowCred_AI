@@ -109,7 +109,7 @@ Current snapshot:
 - Global feature importance is labelled as global; per-invoice SHAP is shown only if the backend supplies it.
 - Mixed-currency aggregates are labelled nominal; no FX conversion is implied.
 - K=6 is disclosed as a modelling choice; silhouette peaks at K=2 in the recorded comparison.
-- `/cash-flow-forecast` is a Coming Soon page with no invented projections.
+- `/cash-flow-forecast` shows a historical weekly forecast per currency, labelled with its as-of date, invoice-clearance proxy limitation and derived-daily-estimate status.
 - Model metrics are labelled as recorded historical evaluation, not guarantees.
 
 ## CSV validation
@@ -186,7 +186,7 @@ Reports are assembled client-side from API responses. CSV and PDF downloads stay
 
 The live client connects to the FastAPI service at `VITE_API_BASE_URL` (Docker uses the same-origin `/api/v1` Nginx proxy). The Settings → API Integration view reads `/health` and `/capabilities`, refreshes health every 30 seconds, and distinguishes route registration from the current account's authorization. POST operations are represented by backend route metadata and are never called as probes.
 
-JWT login, access-token verification, refresh rotation, model inference and owner-only CSV upload/persistence are implemented server-side. External SSO, scheduled report delivery, server-side report storage, and cash-flow forecasting are not implemented. The collection role has no assignment/follow-up model yet and is denied shared analytics access.
+JWT login, access-token verification, refresh rotation, model inference, owner-only CSV upload/persistence and cash-flow forecasting are implemented server-side. External SSO, scheduled report delivery and server-side report storage are not implemented. The collection role has no assignment/follow-up model yet and is denied shared analytics access.
 
 ## Project layout
 

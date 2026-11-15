@@ -77,8 +77,7 @@ The source for `feature_engineering_utils` was recovered from the project's reta
 - There is no application rate limiter yet. Add a shared proxy/API rate limit before exposing authentication and upload routes to the public internet.
 - Audit events currently cover key mutations and predictions, not every read. Consider retention, export, and tamper-resistant audit storage for regulated operation.
 - Role authorization applies across the shared workspace; per-company/customer row-level tenancy is not implemented.
-- Cash-inflow forecasting remains unavailable because no verified model artifact exists. Static dashboard summary/source snapshot endpoints may not reflect newly uploaded data; invoice/customer lists and prediction histories use persisted data.
-- PostgreSQL and full browser-to-database E2E have not yet been confirmed in this machine. The backend test suite exercises live SQLite persistence and saved-model inference.
+- Cash-flow forecasting is available through a dedicated weekly model per currency (USD and CAD). It predicts an invoice-clearance proxy at 7/30/90-day horizons; daily figures are derived estimates, a payment ledger is required for verified cash, and published forecasts are historical simulations. Forecast readiness is exposed separately (`/api/v1/cash-flow/health`) so a missing forecast artifact never degrades core health. Static dashboard summary/source snapshots may not reflect newly uploaded data; invoice/customer lists and prediction histories use persisted data.
 
 ## Operational API and roles
 

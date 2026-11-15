@@ -1,0 +1,101 @@
+{
+  "source_file": "data/processed/flowcred_cleaned.csv",
+  "source_rows": 48839,
+  "observed_window": {
+    "start": "2019-01-03",
+    "end": "2020-03-13"
+  },
+  "complete_weeks": {
+    "first": "2019-01-07",
+    "last": "2020-03-02",
+    "count": 61
+  },
+  "excluded_weeks": {
+    "2018-12-31": "window starts Thu 2019-01-03; Mon-Wed unobserved",
+    "2020-03-09": "window ends Fri 2020-03-13; weekend unobserved"
+  },
+  "reconciliation": {
+    "source_rows": 48839,
+    "used_rows": 38815,
+    "dropped_status": 9681,
+    "dropped_currency": 0,
+    "dropped_missing_payment_date": 0,
+    "dropped_invalid_amount": 0,
+    "dropped_outside_window": 343,
+    "zero_days": {
+      "CAD": 146,
+      "USD": 84
+    },
+    "active_days": {
+      "CAD": 290,
+      "USD": 352
+    },
+    "totals": {
+      "CAD": 170644110.65,
+      "USD": 1075224732.04
+    }
+  },
+  "diagnostics": {
+    "USD": {
+      "weekly_n": 61,
+      "weekly_mean": 17414225.000819672,
+      "weekly_median": 18261588.62,
+      "weekly_std": 4076798.015924098,
+      "weekly_cv": 0.23410734705289538,
+      "weekly_min": 1018573.08,
+      "weekly_max": 23529924.25,
+      "weekly_zero_weeks": 0,
+      "daily_n": 436,
+      "daily_zero_days": 84,
+      "daily_active_days": 352,
+      "weekday_shares": {
+        "0": 0.2333190344442914,
+        "1": 0.2324098837403532,
+        "2": 0.167180410542588,
+        "3": 0.16023106286316705,
+        "4": 0.20347482519044457,
+        "5": 0.003328417560491711,
+        "6": 5.636565866404509e-05
+      },
+      "total_collections": 1075224732.04
+    },
+    "CAD": {
+      "weekly_n": 61,
+      "weekly_mean": 2783854.1303278687,
+      "weekly_median": 2603317.12,
+      "weekly_std": 1208177.019958788,
+      "weekly_cv": 0.4339943701778997,
+      "weekly_min": 0.0,
+      "weekly_max": 5541051.99,
+      "weekly_zero_weeks": 1,
+      "daily_n": 436,
+      "daily_zero_days": 146,
+      "daily_active_days": 290,
+      "weekday_shares": {
+        "0": 0.22922255790572224,
+        "1": 0.1436104556659544,
+        "2": 0.13106330641048147,
+        "3": 0.15502859408671105,
+        "4": 0.34105223289888914,
+        "5": 2.2853032241753456e-05,
+        "6": 0.0
+      },
+      "total_collections": 170644110.65
+    }
+  },
+  "target_contract": {
+    "target_definition": "collection_proxy(date, currency) = SUM(invoice_amount) of invoices with invoice_status == 'paid' whose payment_date falls on that date, grouped by invoice_currency. Invoice-clearance proxy, not verified cash received.",
+    "payment_proxy": true,
+    "proxy_limitations": [
+      "Source data has no payment ledger and no amount-received column; invoice_amount is the source's total_open_amount.",
+      "For partially settled invoices, invoice_amount may be a residual balance, so the clearing-date amount can over- or under-state cash actually received.",
+      "The model therefore forecasts invoice clearance, not bank-confirmed cash inflow.",
+      "A transaction-level payment ledger is required before these figures may be described as verified cash received."
+    ],
+    "requires_payment_ledger_for_verified_cash": true
+  },
+  "outputs": {
+    "daily": "data/processed/cash_flow_daily.csv",
+    "weekly": "data/processed/cash_flow_weekly.csv"
+  }
+}

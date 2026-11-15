@@ -2,6 +2,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { api } from "@/api";
 import type { CustomerListParams, InvoiceListParams } from "@/types";
 import { useAuthStore } from "@/stores/auth";
+import type { CashFlowForecastParams } from "@/types";
 
 export const queryKeys = {
   dashboard: ["dashboard"] as const,
@@ -19,6 +20,7 @@ export const queryKeys = {
   health: ["health"] as const,
   capabilities: ["capabilities"] as const,
   currentUser: ["current-user"] as const,
+  cashFlow: (params: CashFlowForecastParams) => ["cash-flow", params] as const,
   search: (query: string) => ["search", query] as const,
 };
 
@@ -105,6 +107,14 @@ export function useCapabilities(enabled = true) {
 export function useSessionStatus(enabled = true) {
   const hasToken = useAuthStore((state) => Boolean(state.accessToken));
   return useQuery({ queryKey: queryKeys.currentUser, queryFn: api.currentUser, enabled: enabled && hasToken, staleTime: 60_000, retry: false });
+}
+
+export function useCashFlowForecast(params: CashFlowForecastParams = {}) {
+  return useQuery({
+    queryKey: queryKeys.cashFlow(params),
+    queryFn: () => api.cashFlowForecast(params),
+    staleTime: 5 * 60_000,
+  });
 }
 
 export function useGlobalSearch(query: string) {

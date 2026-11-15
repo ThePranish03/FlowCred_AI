@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from sqlalchemy import Boolean, CheckConstraint, Date, DateTime, ForeignKey, Index, Integer, JSON, Numeric, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
@@ -142,3 +142,46 @@ class RefreshToken(Base):
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     replaced_by: Mapped[str | None] = mapped_column(String(36))
     user: Mapped[User] = relationship(back_populates="refresh_tokens")
+
+class CashFlowForecastRun(Base):
+    """One persisted generation of an aggregate cash-flow forecast.
+
+    Deliberately separate from ``Predictions``: that table is invoice-scoped
+    (one probability/risk band per invoice) and cannot hold a date series.
+    """
+    __tablename__ = "cash_flow_forecast_runs"
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    as_of: Mapped[date] = mapped_column(Date, nullable=False, index=True)
+    horizon_days: Mapped[int] = mapped_column(Integer, nullable=False)
+    currency: Mapped[str] = mapped_column(String(3), nullable=False, index=True)
+    model_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    model_version: Mapped[str | None] = mapped_column(String(96))
+    status: Mapped[str] = mapped_column(String(24), nullable=False, default="generated")
+    metrics_json: Mapped[dict | None] = mapped_column(JSON)
+    assumptions_json: Mapped[dict | None] = mapped_column(JSON)
+    created_by: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False, default=utcnow)
+    points: Mapped[list["CashFlowForecastPoint"]] = relationship(back_populates="run", cascade="all, delete-orphan")
+    __table_args__ = (
+        CheckConstraint("horizon_days IN (7, 30, 90)", name="ck_cash_flow_runs_horizon"),
+        CheckConstraint("currency IN ('USD', 'CAD')", name="ck_cash_flow_runs_currency"),
+        Index("ix_cash_flow_runs_currency_asof_horizon", "currency", "as_of", "horizon_days"),
+    )
+
+class CashFlowForecastPoint(Base):
+    """A single weekly or daily point belonging to a persisted forecast run."""
+    __tablename__ = "cash_flow_forecast_points"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    run_id: Mapped[str] = mapped_column(ForeignKey("cash_flow_forecast_runs.id", ondelete="CASCADE"), nullable=False, index=True)
+    granularity: Mapped[str] = mapped_column(String(8), nullable=False)
+    point_date: Mapped[date] = mapped_column(Date, nullable=False)
+    predicted: Mapped[float] = mapped_column(Numeric(16, 2), nullable=False)
+    lower: Mapped[float | None] = mapped_column(Numeric(16, 2))
+    upper: Mapped[float | None] = mapped_column(Numeric(16, 2))
+    run: Mapped[CashFlowForecastRun] = relationship(back_populates="points")
+    __table_args__ = (
+        CheckConstraint("granularity IN ('weekly', 'daily')", name="ck_cash_flow_points_granularity"),
+        CheckConstraint("lower IS NULL OR upper IS NULL OR lower <= predicted", name="ck_cash_flow_points_lower"),
+        CheckConstraint("lower IS NULL OR upper IS NULL OR predicted <= upper", name="ck_cash_flow_points_upper"),
+        Index("ix_cash_flow_points_run_date", "run_id", "point_date"),
+    )
