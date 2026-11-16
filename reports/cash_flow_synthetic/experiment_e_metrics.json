@@ -1,0 +1,144 @@
+{
+  "verdicts": {
+    "USD": {
+      "XGBoost weekly (E1 pretrain)": {
+        "base_arm": "E0s",
+        "augmented_arm": "E1",
+        "base_wape": 0.1426,
+        "augmented_wape": 0.1747,
+        "relative_improvement": -0.2253,
+        "origins_won": 3,
+        "origins_total": 26,
+        "qualifies": false,
+        "verdict": "worsened"
+      },
+      "XGBoost weekly (E2w combined)": {
+        "base_arm": "E0s",
+        "augmented_arm": "E2w",
+        "base_wape": 0.1426,
+        "augmented_wape": 0.1652,
+        "relative_improvement": -0.1583,
+        "origins_won": 6,
+        "origins_total": 26,
+        "qualifies": false,
+        "verdict": "worsened"
+      },
+      "XGBoost daily (E2d combined)": {
+        "base_arm": "E0s",
+        "augmented_arm": "E2d",
+        "base_wape": 0.1219,
+        "augmented_wape": 0.1475,
+        "relative_improvement": -0.2101,
+        "origins_won": 4,
+        "origins_total": 26,
+        "qualifies": false,
+        "verdict": "worsened"
+      },
+      "ARIMA (hybrid)": {
+        "base_arm": "E0s",
+        "augmented_arm": "E3",
+        "base_wape": 0.1701,
+        "augmented_wape": 0.1586,
+        "relative_improvement": 0.0676,
+        "origins_won": 17,
+        "origins_total": 26,
+        "qualifies": false,
+        "verdict": "no material change"
+      },
+      "ETS (hybrid)": {
+        "base_arm": "E0s",
+        "augmented_arm": "E3",
+        "base_wape": 0.1913,
+        "augmented_wape": 0.164,
+        "relative_improvement": 0.1426,
+        "origins_won": 13,
+        "origins_total": 26,
+        "qualifies": true,
+        "verdict": "improved"
+      }
+    },
+    "CAD": {
+      "XGBoost weekly (E1 pretrain)": {
+        "base_arm": "E0s",
+        "augmented_arm": "E1",
+        "base_wape": 0.3381,
+        "augmented_wape": 0.3497,
+        "relative_improvement": -0.0344,
+        "origins_won": 10,
+        "origins_total": 26,
+        "qualifies": false,
+        "verdict": "worsened"
+      },
+      "XGBoost weekly (E2w combined)": {
+        "base_arm": "E0s",
+        "augmented_arm": "E2w",
+        "base_wape": 0.3381,
+        "augmented_wape": 0.2708,
+        "relative_improvement": 0.199,
+        "origins_won": 18,
+        "origins_total": 26,
+        "qualifies": true,
+        "verdict": "improved"
+      },
+      "XGBoost daily (E2d combined)": {
+        "base_arm": "E0s",
+        "augmented_arm": "E2d",
+        "base_wape": 0.3475,
+        "augmented_wape": 0.331,
+        "relative_improvement": 0.0476,
+        "origins_won": 15,
+        "origins_total": 26,
+        "qualifies": false,
+        "verdict": "no material change"
+      },
+      "ARIMA (hybrid)": {
+        "base_arm": "E0s",
+        "augmented_arm": "E3",
+        "base_wape": 0.2992,
+        "augmented_wape": 0.2997,
+        "relative_improvement": -0.0015,
+        "origins_won": 14,
+        "origins_total": 26,
+        "qualifies": false,
+        "verdict": "no material change"
+      },
+      "ETS (hybrid)": {
+        "base_arm": "E0s",
+        "augmented_arm": "E3",
+        "base_wape": 0.352,
+        "augmented_wape": 0.3264,
+        "relative_improvement": 0.0727,
+        "origins_won": 19,
+        "origins_total": 26,
+        "qualifies": false,
+        "verdict": "no material change"
+      }
+    }
+  },
+  "transition": {
+    "USD": {
+      "synthetic_tail_mean_raw": 4091210.7775,
+      "synthetic_tail_mean_matched": 14056592.183679603,
+      "real_head_mean": 9847696.26,
+      "raw_gap": 5756485.4825,
+      "matched_gap": 4208895.923679603,
+      "typical_weekly_change": 1820031.3149999995,
+      "ratio_raw": 3.162849691132925,
+      "ratio": 2.3125403881743676,
+      "level_match_factor": 3.4358,
+      "combined_weeks": 204
+    },
+    "CAD": {
+      "synthetic_tail_mean_raw": 491826.7,
+      "synthetic_tail_mean_matched": 2304804.1223219014,
+      "real_head_mean": 1081941.9725000001,
+      "raw_gap": 590115.2725000002,
+      "matched_gap": 1222862.1498219012,
+      "typical_weekly_change": 798294.54,
+      "ratio_raw": 0.739219978255144,
+      "ratio": 1.5318433091398835,
+      "level_match_factor": 4.6862,
+      "combined_weeks": 204
+    }
+  }
+}

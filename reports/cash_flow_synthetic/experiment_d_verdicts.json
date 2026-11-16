@@ -1,0 +1,34 @@
+{
+  "USD": {
+    "d0_validation_wape": 0.3998,
+    "d0_seed_std": 0.0915,
+    "d1_validation_wape": 0.2078,
+    "d1_seed_std": 0.0069,
+    "relative_improvement": 0.4801,
+    "origins_d1_better": 23,
+    "origins_total": 26,
+    "stable_across_seeds": true,
+    "d0_holdout_wape": 1.1992,
+    "d1_holdout_wape": 0.6142,
+    "divergent": false,
+    "verdict": "improved",
+    "production_reference_wape": 0.121885,
+    "seasonal_naive_reference_wape": 0.177423
+  },
+  "CAD": {
+    "d0_validation_wape": 0.4782,
+    "d0_seed_std": 0.0667,
+    "d1_validation_wape": 0.3747,
+    "d1_seed_std": 0.026,
+    "relative_improvement": 0.2165,
+    "origins_d1_better": 20,
+    "origins_total": 26,
+    "stable_across_seeds": true,
+    "d0_holdout_wape": 1.166,
+    "d1_holdout_wape": 1.0829,
+    "divergent": false,
+    "verdict": "improved",
+    "production_reference_wape": 0.299219,
+    "seasonal_naive_reference_wape": 0.355547
+  }
+}

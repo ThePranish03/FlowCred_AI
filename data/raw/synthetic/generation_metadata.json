@@ -1,0 +1,271 @@
+{
+  "generated_at": "2026-11-15T16:18:12+00:00",
+  "generator_version": "1.0.0",
+  "source_type": "synthetic_simulation",
+  "synthetic": true,
+  "disclaimer": "Simulated data. These are not genuine historical business transactions and must not be presented as such.",
+  "random_seed": 20260101,
+  "n_invoices": 50000,
+  "n_customers": 1400,
+  "n_transactions": 52591,
+  "simulation_period": {
+    "start": "2021-01-01",
+    "end": "2023-12-31",
+    "months": 36
+  },
+  "observation_end": "2023-12-31",
+  "currency_distribution": {
+    "USD": 43595,
+    "CAD": 6405
+  },
+  "profile_assumptions": {
+    "early": 0.2,
+    "on_time": 0.35,
+    "occasional_late": 0.25,
+    "chronic_late": 0.15,
+    "high_risk": 0.05
+  },
+  "profile_distribution": {
+    "on_time": 490,
+    "occasional_late": 350,
+    "early": 280,
+    "chronic_late": 210,
+    "high_risk": 70
+  },
+  "payment_term_assumptions": {
+    "choices_days": [
+      15,
+      30,
+      45,
+      60
+    ],
+    "weights": [
+      0.28,
+      0.44,
+      0.2,
+      0.08
+    ]
+  },
+  "partial_payment_rates": {
+    "early": 0.06,
+    "on_time": 0.08,
+    "occasional_late": 0.15,
+    "chronic_late": 0.22,
+    "high_risk": 0.3
+  },
+  "never_pay_rates": {
+    "early": 0.002,
+    "on_time": 0.004,
+    "occasional_late": 0.02,
+    "chronic_late": 0.05,
+    "high_risk": 0.45
+  },
+  "censoring": {
+    "observation_end": "2023-12-31",
+    "settlement_horizon": "2024-06-28",
+    "observed_transactions": 52591,
+    "withheld_transactions": 2003,
+    "censored_invoices": 1924
+  },
+  "config": {
+    "seed": 20260101,
+    "n_invoices": 50000,
+    "n_customers": 1400,
+    "months": 36,
+    "start_year": 2021,
+    "start_month": 1,
+    "usd_share": 0.88,
+    "term_choices": [
+      15,
+      30,
+      45,
+      60
+    ],
+    "term_weights": [
+      0.28,
+      0.44,
+      0.2,
+      0.08
+    ],
+    "posting_holiday_rate": 0.012,
+    "dispute_rate": 0.006,
+    "base_amount": {
+      "USD": 14000.0,
+      "CAD": 11000.0
+    },
+    "version": "1.0.0"
+  },
+  "files": {
+    "invoices": "data/raw/synthetic/synthetic_invoices.csv",
+    "transactions": "data/raw/synthetic/synthetic_payment_transactions.csv",
+    "customers": "data/raw/synthetic/synthetic_customers.csv",
+    "daily_targets": "data/processed/synthetic/synthetic_cash_flow_daily.csv",
+    "weekly_targets": "data/processed/synthetic/synthetic_cash_flow_weekly.csv"
+  },
+  "row_counts": {
+    "invoices": 50000,
+    "transactions": 52591,
+    "customers": 1400,
+    "daily_rows": 2010,
+    "weekly_rows": 286
+  },
+  "content_hash": {
+    "invoices": "f7a460d8a863776b1ebb80aa1f36fc62a05ef2b28cf440a0b81f63899cfa4719",
+    "transactions": "985ef6754d73879f7611493dfb6964b7c30786de1eee1b97637cab515f234041",
+    "customers": "cd41c19c40a0f20db03a4e2be37b5b048a39e91f83c29518e9439d019afedd88"
+  },
+  "validation": {
+    "passed": 28,
+    "failed": 0,
+    "ok": true,
+    "checks": [
+      {
+        "check": "invoice_schema",
+        "ok": true,
+        "detail": "all required columns present"
+      },
+      {
+        "check": "transaction_schema",
+        "ok": true,
+        "detail": "all required columns present"
+      },
+      {
+        "check": "invoice_count",
+        "ok": true,
+        "detail": "50,000 invoices"
+      },
+      {
+        "check": "invoice_ids_unique",
+        "ok": true,
+        "detail": "no duplicate invoice ids"
+      },
+      {
+        "check": "transaction_ids_unique",
+        "ok": true,
+        "detail": "no duplicate transaction ids"
+      },
+      {
+        "check": "transaction_invoice_integrity",
+        "ok": true,
+        "detail": "every transaction references a known invoice"
+      },
+      {
+        "check": "customer_referential_integrity",
+        "ok": true,
+        "detail": "every invoice references a known customer"
+      },
+      {
+        "check": "due_after_invoice",
+        "ok": true,
+        "detail": "every due date follows its invoice date"
+      },
+      {
+        "check": "payment_dates_parse",
+        "ok": true,
+        "detail": "all payment dates parse"
+      },
+      {
+        "check": "payment_after_invoice",
+        "ok": true,
+        "detail": "no payment predates its invoice"
+      },
+      {
+        "check": "no_payments_after_window",
+        "ok": true,
+        "detail": "ledger stops at observation end 2023-12-31"
+      },
+      {
+        "check": "currency_domain",
+        "ok": true,
+        "detail": "only USD and CAD present"
+      },
+      {
+        "check": "transaction_currency_match",
+        "ok": true,
+        "detail": "transaction currency matches its invoice"
+      },
+      {
+        "check": "invoice_amount_positive",
+        "ok": true,
+        "detail": "all invoice amounts are positive"
+      },
+      {
+        "check": "transaction_amount_positive",
+        "ok": true,
+        "detail": "all payments are positive"
+      },
+      {
+        "check": "no_overpayment",
+        "ok": true,
+        "detail": "no invoice received more than its amount"
+      },
+      {
+        "check": "payment_reconciliation",
+        "ok": true,
+        "detail": "max |ledger - invoice| = 0.0000"
+      },
+      {
+        "check": "outstanding_consistency",
+        "ok": true,
+        "detail": "outstanding = amount - received"
+      },
+      {
+        "check": "outstanding_non_negative",
+        "ok": true,
+        "detail": "no negative outstanding balances"
+      },
+      {
+        "check": "partial_payment_consistency",
+        "ok": true,
+        "detail": "partial invoices have ledger entries"
+      },
+      {
+        "check": "paid_invoices_settled",
+        "ok": true,
+        "detail": "paid invoices are fully covered"
+      },
+      {
+        "check": "open_invoices_unpaid",
+        "ok": true,
+        "detail": "open invoices have no receipts"
+      },
+      {
+        "check": "censoring_present",
+        "ok": true,
+        "detail": "1,924 invoices flagged censored"
+      },
+      {
+        "check": "censoring_correct",
+        "ok": true,
+        "detail": "recent unsettled invoices are flagged rather than called unpaid"
+      },
+      {
+        "check": "complete_rows_consistent",
+        "ok": true,
+        "detail": "complete rows reconcile to their status"
+      },
+      {
+        "check": "metadata_complete",
+        "ok": true,
+        "detail": "all required metadata keys present"
+      },
+      {
+        "check": "metadata_counts_match",
+        "ok": true,
+        "detail": "metadata counts match the frames"
+      },
+      {
+        "check": "synthetic_designated",
+        "ok": true,
+        "detail": "dataset is explicitly marked synthetic"
+      }
+    ],
+    "failures": []
+  },
+  "notes": [
+    "Simulated data, not genuine historical business transactions.",
+    "The real dataset data/processed/flowcred_cleaned.csv was not read or modified.",
+    "No existing model artifact was regenerated.",
+    "Weekly targets exclude the final censoring buffer; see observation_end."
+  ]
+}
