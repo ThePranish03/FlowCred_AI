@@ -241,3 +241,31 @@ def test_runs_list_reflects_persisted_run(client, forecast_loaded):
     items = listing.json()["items"]
     assert any(item["runId"] == created.json()["runId"] for item in items)
     assert all(item["currency"] == "CAD" for item in items)
+
+
+# ---------------------------------------------------------------------------
+# Diagnostics (recorded backtest evidence)
+# ---------------------------------------------------------------------------
+def test_diagnostics_endpoint_returns_recorded_evidence(client, forecast_loaded):
+    client.acting_user = 1
+    response = client.get("/api/v1/cash-flow/diagnostics")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["available"] is True
+    for currency in ("USD", "CAD"):
+        bundle = body["currencies"][currency]
+        assert len(bundle["candidates"]) == 6
+        selected = bundle["decision"]["selected"]
+        assert selected in {c["model"] for c in bundle["candidates"]}
+        assert len(bundle["perOrigin"][selected]) == 26
+        assert len(bundle["residuals"][selected]) == 13
+        assert len(bundle["weekdayShares"]) == 7
+        assert all("wape" in c["scopes"]["weekly"] for c in bundle["candidates"])
+    assert [e["id"] for e in body["research"]["experiments"]] == ["A", "B", "C", "D", "E"]
+
+
+def test_diagnostics_missing_file_is_reported_not_fatal(client, monkeypatch, tmp_path):
+    monkeypatch.setattr(main, "CASH_FLOW_DIAGNOSTICS", tmp_path / "absent.json")
+    response = client.get("/api/v1/cash-flow/diagnostics")
+    assert response.status_code == 200
+    assert response.json()["available"] is False

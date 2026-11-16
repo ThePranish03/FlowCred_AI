@@ -39,6 +39,7 @@ FRONTEND_DATA = ROOT / "frontend" / "public" / "demo-data"
 MODEL_DIR = Path(os.getenv("MODEL_DIR", str(ROOT / "models")))
 DATA_DIR = Path(os.getenv("DATA_DIR", str(ROOT / "data")))
 MODEL_DIR = (MODEL_DIR if MODEL_DIR.is_absolute() else _main_path.parents[1] / MODEL_DIR).resolve()
+CASH_FLOW_DIAGNOSTICS = ROOT / "reports" / "cash_flow" / "diagnostics.json"
 DATA_DIR = (DATA_DIR if DATA_DIR.is_absolute() else _main_path.parents[1] / DATA_DIR).resolve()
 UPLOAD_DIR = DATA_DIR / "uploads"
 LOGGER = logging.getLogger("flowcred")
@@ -487,7 +488,7 @@ def capabilities():
         ("GET", "/insights", ("business_owner", "accountant")), ("GET", "/datasets/quality", ("business_owner", "accountant")),
         ("GET", "/datasets", ("business_owner", "accountant")), ("POST", "/datasets/scoring-jobs", ANALYTICS_ROLES), ("GET", "/datasets/scoring-jobs/{job_id}", ANALYTICS_ROLES), ("GET", "/search?q=", ANALYTICS_ROLES), ("GET", "/health", ()),
         ("POST", "/invoices/predict/late-payment", ANALYTICS_ROLES), ("POST", "/invoices/predict/payment-delay", ANALYTICS_ROLES), ("POST", "/datasets/upload", ("business_owner",)),
-        ("GET", "/cash-flow/health", ()), ("GET", "/cash-flow/forecast", CASH_FLOW_READ_ROLES), ("GET", "/cash-flow/runs", CASH_FLOW_READ_ROLES), ("POST", "/cash-flow/runs", ("admin", "business_owner")),
+        ("GET", "/cash-flow/health", ()), ("GET", "/cash-flow/forecast", CASH_FLOW_READ_ROLES), ("GET", "/cash-flow/diagnostics", CASH_FLOW_READ_ROLES), ("GET", "/cash-flow/runs", CASH_FLOW_READ_ROLES), ("POST", "/cash-flow/runs", ("admin", "business_owner")),
     ]
     registered = {(method, route.path) for route in app.routes for method in getattr(route, "methods", set())}
     rows = []
@@ -560,6 +561,25 @@ def cash_flow_forecast(
         raise HTTPException(503, f"cash-flow model pipeline unavailable: {exc}") from exc
     except forecasting.ForecastError as exc:
         raise HTTPException(422, str(exc)) from exc
+
+
+@app.get("/api/v1/cash-flow/diagnostics", dependencies=[Depends(allow_roles(*CASH_FLOW_READ_ROLES))])
+def cash_flow_diagnostics():
+    """Recorded backtest evidence: per-candidate, per-origin, per-step.
+
+    Aggregated offline by ``backend/scripts/export_cashflow_diagnostics.py`` from
+    the committed report files. Read-only and never recomputes a model.
+    """
+    if not CASH_FLOW_DIAGNOSTICS.exists():
+        return {
+            "available": False,
+            "note": "diagnostics not exported; run backend/scripts/export_cashflow_diagnostics.py",
+        }
+    try:
+        return json.loads(CASH_FLOW_DIAGNOSTICS.read_text(encoding="utf-8"))
+    except Exception as exc:  # pragma: no cover - corrupted file
+        LOGGER.warning("Cash-flow diagnostics unreadable: %s", type(exc).__name__)
+        return {"available": False, "note": "diagnostics file could not be parsed"}
 
 
 @app.get("/api/v1/cash-flow/runs", dependencies=[Depends(allow_roles(*CASH_FLOW_READ_ROLES))])
