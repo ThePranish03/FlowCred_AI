@@ -1,5 +1,6 @@
 import { API_MODE } from "@/lib/constants";
 import type {
+  CashFlowDiagnostics,
   CashFlowForecastParams,
   CashFlowForecastResponse,
   CashFlowHealthResponse,
@@ -165,6 +166,15 @@ export const api = {
     }
     if (response.status >= 500 && body.status !== "unavailable") {
       throw new Error(`Cash-flow health check failed (${response.status}).`);
+    }
+    return body;
+  },
+
+  cashFlowDiagnostics: async (): Promise<CashFlowDiagnostics> => {
+    if (isDemo) return demo.getCashFlowDiagnostics();
+    const body = await request<CashFlowDiagnostics>({ url: "/cash-flow/diagnostics", timeout: 30_000 });
+    if (!body || typeof body.available !== "boolean") {
+      throw new Error("Cash-flow diagnostics endpoint returned an invalid response.");
     }
     return body;
   },

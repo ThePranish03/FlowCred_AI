@@ -1,4 +1,5 @@
 import type {
+  CashFlowDiagnostics,
   CashFlowForecastParams,
   CashFlowForecastResponse,
   CashFlowHealthResponse,
@@ -228,6 +229,10 @@ export async function getCashFlowHealth(): Promise<CashFlowHealthResponse> {
     models,
     metadata_loaded: models.every((model) => model.available),
   };
+}
+
+export async function getCashFlowDiagnostics(): Promise<CashFlowDiagnostics> {
+  return fetchJson<CashFlowDiagnostics>("cashflow-diagnostics.json");
 }
 
 export async function getHealth(): Promise<HealthResponse> {

@@ -21,6 +21,7 @@ export const queryKeys = {
   capabilities: ["capabilities"] as const,
   currentUser: ["current-user"] as const,
   cashFlow: (params: CashFlowForecastParams) => ["cash-flow", params] as const,
+  cashFlowDiagnostics: ["cash-flow-diagnostics"] as const,
   cashFlowHealth: ["cash-flow-health"] as const,
   search: (query: string) => ["search", query] as const,
 };
@@ -136,5 +137,13 @@ export function useGlobalSearch(query: string) {
     queryFn: () => api.search(query),
     enabled: query.trim().length >= 2,
     staleTime: 60_000,
+  });
+}
+
+export function useCashFlowDiagnostics() {
+  return useQuery({
+    queryKey: queryKeys.cashFlowDiagnostics,
+    queryFn: api.cashFlowDiagnostics,
+    staleTime: 10 * 60_000,
   });
 }

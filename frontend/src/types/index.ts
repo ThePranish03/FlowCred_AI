@@ -476,6 +476,105 @@ export interface CashFlowForecastResponse {
   };
 }
 
+export interface DiagnosticsScopeMetrics {
+  mae: number | null;
+  rmse: number | null;
+  wape: number | null;
+  holdoutWape: number | null;
+  n: number | null;
+}
+
+export type DiagnosticsScope = "weekly" | "h7" | "h30" | "h90";
+
+export interface DiagnosticsCandidate {
+  model: string;
+  selected: boolean;
+  originsBeatingNaive: number;
+  scopes: Partial<Record<DiagnosticsScope, DiagnosticsScopeMetrics>>;
+}
+
+export interface DiagnosticsDecision {
+  selected: string | null;
+  kind: string | null;
+  baseline: string | null;
+  baselineWape: number | null;
+  selectedWape: number | null;
+  thresholdWape: number | null;
+  reason: string | null;
+  rule: Record<string, unknown> | null;
+}
+
+export interface PerOriginPoint {
+  origin: number;
+  asOf: string;
+  wape: number | null;
+}
+
+export interface ResidualStep {
+  step: number;
+  mae: number | null;
+  p10: number | null;
+  p50: number | null;
+  p90: number | null;
+  normalised: number | null;
+}
+
+export interface CashFlowResearchExperiment {
+  id: string;
+  question: string;
+  detail: string;
+}
+
+export interface CashFlowResearch {
+  experiments: CashFlowResearchExperiment[];
+  syntheticOnly?: Partial<Record<"USD" | "CAD", { model: string; wape: number | null }>>;
+  mlp?: Partial<
+    Record<
+      "USD" | "CAD",
+      { realOnly: number; pretrained: number; relative: number; verdict: string; production: number }
+    >
+  >;
+  augmentation?: Record<
+    string,
+    Record<
+      string,
+      {
+        base_wape: number;
+        augmented_wape: number;
+        relative_improvement: number;
+        origins_won: number;
+        origins_total: number;
+        verdict: string;
+        qualifies: boolean;
+      }
+    >
+  >;
+  transition?: Record<string, { ratio: number; ratio_raw: number; level_match_factor: number }>;
+}
+
+export interface CashFlowDiagnostics {
+  available: boolean;
+  note?: string;
+  generatedAt?: string;
+  source?: string;
+  scopes?: DiagnosticsScope[];
+  currencies?: Partial<
+    Record<
+      "USD" | "CAD",
+      {
+        candidates: DiagnosticsCandidate[];
+        decision: DiagnosticsDecision;
+        perOrigin: Record<string, PerOriginPoint[]>;
+        residuals: Record<string, ResidualStep[]>;
+        holdout: { origin: number; asOf: string; actual: number | null; wapeNaive: number | null }[];
+        weekdayShares: number[];
+        horizonIntervals: Record<string, { p10: number; p90: number; n: number }>;
+      }
+    >
+  >;
+  research?: CashFlowResearch;
+}
+
 export interface FeatureImportanceItem {
   feature: string;
   label: string;
